@@ -40,6 +40,7 @@ public class KeyboardInputs implements KeyListener {
 
     }
 
+    // When key released stop moving (animation and transition)
     @Override
     public void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()) {

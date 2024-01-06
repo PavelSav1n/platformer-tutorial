@@ -2,7 +2,6 @@ package ps.main;
 
 import ps.inputs.KeyboardInputs;
 import ps.inputs.MouseInputs;
-import ps.utils.Constants;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -11,19 +10,19 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static ps.utils.Constants.PlayerConstants.*;
 import static ps.utils.Constants.Directions.*;
+import static ps.utils.Constants.PlayerConstants.*;
 
 public class GamePanel extends JPanel {
 
     private MouseInputs mouseInputs;
-    private float xDelta = 100, yDelta = 100;
-    private int frames = 0; // frames that will be counted
-    private BufferedImage img;
-    private BufferedImage[][] animations; // array for all animation sprites such as idle, death, running and so on.
+    private float xDelta = 0, yDelta = 0; // Coordinates where image should be drawn.
+//    private int frames = 0; // frames that will be counted
+    private BufferedImage img; // Initial image, where all sprites are.
+    private BufferedImage[][] animations; // Array for all separate animation sprites such as idle, death, running and so on.
     private int animationTick, animationIndex, animationSpeed = 20; // for running through massive of sprites with determined speed
-    private int playerAction = IDLE;
-    private int playerDirection = -1; // if not moving =-1, otherwise it's 0, 1, 2 or 3
+    private int playerAction = IDLE; // Animation current state. Used for accessing to specified row of animations[][] massive.
+    private int playerDirection = -1; // Moving state. If not moving =-1, otherwise it's 0, 1, 2 or 3
     private boolean moving = false;
 
 
@@ -40,6 +39,7 @@ public class GamePanel extends JPanel {
         loadAnimations();
     }
 
+    // Actually it "cuts" specified sprites image into subimages and puts them into animations[][] massive.
     private void loadAnimations() {
         animations = new BufferedImage[9][6]; // depends on player_sprites animation entities/samples
 
@@ -66,6 +66,7 @@ public class GamePanel extends JPanel {
         }
     }
 
+    // Specify the size of JPanel (GamePanel). Without it, it would be just window with 0x0px grid
     private void setPanelSize() {
         Dimension size = new Dimension(1280, 800);
         setMinimumSize(size);
@@ -73,10 +74,10 @@ public class GamePanel extends JPanel {
         setMaximumSize(size);
     }
 
+    // Setter for playerDirection
     public void setDirection(int direction) {
         this.playerDirection = direction;
         moving = true;
-
     }
 
     public void setMoving(boolean moving) {
@@ -92,7 +93,7 @@ public class GamePanel extends JPanel {
         setAnimation();
         updatePosition();
 
-        // getting image and drawing 64x40 part at idleAnimation[i] of initial image
+        // getting image and drawing 64x40 part at animations[i][j] of initial image
         graphics.drawImage(animations[playerAction][animationIndex], (int) xDelta, (int) yDelta, 256, 160, null);
     }
 
@@ -123,11 +124,14 @@ public class GamePanel extends JPanel {
         }
     }
 
+    // for running through massive of sprites with determined speed
+    // AnimationTick is a counter of frames. It gets incremented till specified animationSpeed threshold.
     private void updateAnimationTick() {
         animationTick++;
-        if (animationTick >= animationSpeed) {
+        if (animationTick >= animationSpeed) { // Animation index goes 0-1-2-3... till the constant of specified animation and then -0-1-2-3...
             animationTick = 0;
             animationIndex++;
+            //
             if (animationIndex >= getSpriteAmount(playerAction)) {
                 animationIndex = 0;
             }

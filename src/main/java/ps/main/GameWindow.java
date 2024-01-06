@@ -3,7 +3,7 @@ package ps.main;
 import javax.swing.*;
 
 public class GameWindow {
-    // we can just extend this class by JFrame
+    // we can just extend this class with JFrame
     private JFrame jframe;
 
     public GameWindow(GamePanel gamePanel) {
