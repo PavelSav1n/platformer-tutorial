@@ -1,6 +1,8 @@
 package ps.main;
 
 import javax.swing.*;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 
 public class GameWindow {
     // we can just extend this class with JFrame
@@ -18,5 +20,17 @@ public class GameWindow {
         jframe.pack(); // fit the size of the window to the size of it components
         // visible setter must be at the bottom (to avoid glitches)
         jframe.setVisible(true); // actually to show our frame (default = false)
+        jframe.addWindowFocusListener(new WindowFocusListener() { // In case we loose focus on our game window
+            @Override
+            public void windowGainedFocus(WindowEvent e) {
+                System.out.println("FocusBack!");
+            }
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                gamePanel.getGame().windowFocusLost(); // Make all boolean false (stop running, etc.)
+                System.out.println("LostFocus!");
+            }
+        });
     }
 }
