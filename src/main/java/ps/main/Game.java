@@ -1,9 +1,15 @@
 package ps.main;
 
 import ps.entities.Player;
+import ps.levels.LevelManager;
 
 import java.awt.*;
 
+// This is where:
+// 1. Initializing all entities for the game
+// 2. Initializing GamePanel & GameWindow
+// 3. Where our game loop runs
+// 4. Where updating and rendering going on.
 public class Game implements Runnable {
 
     private GameWindow gameWindow;
@@ -11,9 +17,20 @@ public class Game implements Runnable {
     private Thread gameThread;
     // FPS is for render/frames. Draws the gamescene (the level, player, enemies, etc).
     private final static int FPS_SET = 120; // preferred amount of frames per sec.
-    // UPS is for update/tick. Takes care of logic (playermove, events, etc)
+    // UPS is for update/tick. Takes care of logic (playermove, events, etc.)
     private final static int UPS_SET = 200; // preferred amount of updates  per sec
     private Player player;
+    private LevelManager levelManager;
+
+    // Scaling ang dimensions:
+    public final static int TILES_DEFAULT_SIZE = 32;
+    public final static float SCALE = 2.0f;
+    public final static int TILES_IN_WIDTH = 26;
+    public final static int TILES_IN_HEIGHT = 14;
+    public final static int TILES_SIZE = (int) (TILES_DEFAULT_SIZE * SCALE);
+    public final static int GAME_WIDTH = TILES_SIZE * TILES_IN_WIDTH;
+    public final static int GAME_HEIGHT = TILES_SIZE * TILES_IN_HEIGHT;
+
 
     public Game() {
         initClasses(); // initialize all entities needed for a game.
@@ -27,6 +44,7 @@ public class Game implements Runnable {
 
     private void initClasses() {
         player = new Player(200, 200);
+        levelManager = new LevelManager(this);
     }
 
     private void startGameLoop() {
@@ -36,10 +54,12 @@ public class Game implements Runnable {
 
     public void update() {
         player.update();
+        levelManager.update();
     }
 
     public void render(Graphics graphics) {
-        player.render(graphics);
+        levelManager.draw(graphics);
+        player.render(graphics); // Must be above lvl.
     }
 
     @Override

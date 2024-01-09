@@ -3,6 +3,9 @@ package ps.main;
 import ps.inputs.KeyboardInputs;
 import ps.inputs.MouseInputs;
 
+import static ps.main.Game.GAME_HEIGHT;
+import static ps.main.Game.GAME_WIDTH;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -27,8 +30,9 @@ public class GamePanel extends JPanel {
 
     // Specify the size of JPanel (GamePanel). Without it, it would be just window with 0x0px grid
     private void setPanelSize() {
-        Dimension size = new Dimension(1280, 800);
+        Dimension size = new Dimension(GAME_WIDTH, GAME_HEIGHT);
         setMinimumSize(size);
+        System.out.println("size: " + GAME_WIDTH + " : " + GAME_HEIGHT);
         setPreferredSize(size);
         setMaximumSize(size);
     }
