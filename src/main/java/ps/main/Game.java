@@ -1,7 +1,8 @@
 package ps.main;
 
-import ps.entities.Player;
-import ps.levels.LevelManager;
+import ps.gamestates.Gamestate;
+import ps.gamestates.Menu;
+import ps.gamestates.Playing;
 
 import java.awt.*;
 
@@ -19,8 +20,10 @@ public class Game implements Runnable {
     private final static int FPS_SET = 120; // preferred amount of frames per sec.
     // UPS is for update/tick. Takes care of logic (playermove, events, etc.)
     private final static int UPS_SET = 200; // preferred amount of updates  per sec
-    private Player player;
-    private LevelManager levelManager;
+
+    private Playing playing;
+    private Menu menu;
+
 
     // Scaling ang dimensions:
     public final static int TILES_DEFAULT_SIZE = 32;
@@ -43,10 +46,8 @@ public class Game implements Runnable {
     }
 
     private void initClasses() {
-        levelManager = new LevelManager(this);
-        player = new Player(250, 250, (int) (64 * SCALE), (int) (40 * SCALE));
-        player.loadLvlData(levelManager.getCurrentLevel().getLevelData());
-
+        menu = new Menu(this);
+        playing = new Playing(this);
     }
 
     private void startGameLoop() {
@@ -55,13 +56,26 @@ public class Game implements Runnable {
     }
 
     public void update() {
-        player.update();
-        levelManager.update();
+        switch (Gamestate.state) {
+            case PLAYING -> {
+                playing.update();
+            }
+            case MENU -> {
+                menu.update();
+            }
+        }
     }
 
+
     public void render(Graphics graphics) {
-        levelManager.draw(graphics);
-        player.render(graphics); // Must be above lvl.
+        switch (Gamestate.state) {
+            case PLAYING -> {
+                playing.draw(graphics);
+            }
+            case MENU -> {
+                menu.draw(graphics);
+            }
+        }
     }
 
     @Override
@@ -109,12 +123,17 @@ public class Game implements Runnable {
         }
     }
 
-    public Player getPlayer() {
-        return player;
-    }
-
-
     public void windowFocusLost() {
-        player.resetDirectionBooleans();
+        if (Gamestate.state == Gamestate.PLAYING)
+            playing.getPlayer().resetDirectionBooleans();
     }
+
+    public Playing getPlaying() {
+        return playing;
+    }
+
+    public Menu getMenu() {
+        return menu;
+    }
+
 }

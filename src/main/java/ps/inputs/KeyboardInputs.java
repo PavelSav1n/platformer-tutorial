@@ -1,5 +1,6 @@
 package ps.inputs;
 
+import ps.gamestates.Gamestate;
 import ps.main.GamePanel;
 
 import java.awt.event.KeyEvent;
@@ -23,49 +24,23 @@ public class KeyboardInputs implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_W:
-                gamePanel.getGame().getPlayer().setUp(true);
-//                System.out.println("w");
-                break;
-            case KeyEvent.VK_A:
-                gamePanel.getGame().getPlayer().setLeft(true);
-//                System.out.println("a");
-                break;
-            case KeyEvent.VK_S:
-                gamePanel.getGame().getPlayer().setDown(true);
-//                System.out.println("s");
-                break;
-            case KeyEvent.VK_D:
-                gamePanel.getGame().getPlayer().setRight(true);
-//                System.out.println("d");
-                break;
-            case KeyEvent.VK_SPACE:
-                gamePanel.getGame().getPlayer().setJump(true);
-                break;
+        switch (Gamestate.state) {
+            case PLAYING -> gamePanel.getGame().getPlaying().keyPressed(e);
+            case MENU -> gamePanel.getGame().getMenu().keyPressed(e);
         }
-
     }
 
     // When key released stop moving (animation and transition)
     @Override
     public void keyReleased(KeyEvent e) {
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_W:
-                gamePanel.getGame().getPlayer().setUp(false);
-                break;
-            case KeyEvent.VK_A:
-                gamePanel.getGame().getPlayer().setLeft(false);
-                break;
-            case KeyEvent.VK_S:
-                gamePanel.getGame().getPlayer().setDown(false);
-                break;
-            case KeyEvent.VK_D:
-                gamePanel.getGame().getPlayer().setRight(false);
-                break;
-            case KeyEvent.VK_SPACE:
-                gamePanel.getGame().getPlayer().setJump(false);
-                break;
+        switch (Gamestate.state) {
+            case PLAYING -> {
+                gamePanel.getGame().getPlaying().keyReleased(e);
+            }
+
+            case MENU -> {
+                gamePanel.getGame().getMenu().keyReleased(e);
+            }
         }
     }
 }
