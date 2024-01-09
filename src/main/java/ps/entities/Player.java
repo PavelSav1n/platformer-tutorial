@@ -1,14 +1,13 @@
 package ps.entities;
 
+import ps.main.Game;
 import ps.utils.LoadSave;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 
 import static ps.utils.Constants.PlayerConstants.*;
+import static ps.utils.HelpMethods.canMoveHere;
 
 public class Player extends Entity {
 
@@ -20,41 +19,62 @@ public class Player extends Entity {
     private boolean attacking = false;
     private boolean up, left, right, down;
     private float playerSpeed = 2.0f;
+    private int[][] lvlData; // We are storing lvl data in player class just for now. We need it to detect collision.
+    private float xDrawOffset = 21 * Game.SCALE; // Offset where new hitbox will start (not 0x0 but 21x4)
+    private float yDrawOffset = 4 * Game.SCALE;
 
-    public Player(float x, float y) {
-        super(x, y);
+    public Player(float x, float y, int width, int height) {
+        super(x, y, width, height);
         loadAnimations();
+        initHitbox(x, y, 20 * Game.SCALE, 28 * Game.SCALE); // Initializing & Drawing hitbox with a size of 20x28 at x, y.
     }
 
     public void update() {
         updatePosition(); // if moving updating position
+//        updateHitbox(); //
         updateAnimationTick();
         setAnimation(); // to set proper playerAction
     }
 
     public void render(Graphics graphics) {
-        // getting image and drawing 64x40 part at animations[i][j] of initial image
-        graphics.drawImage(animations[playerAction][animationIndex], (int) x, (int) y, 256, 160, null);
-
+        // getting image and drawing width x height (64x40 -- default) part at animations[i][j] of initial image
+        // hitbox.x -xDrawOffset is where to draw a player.
+        // We're drawing a player after drawing a hitbox, with a bit of offset.
+        graphics.drawImage(animations[playerAction][animationIndex], (int) (hitbox.x - xDrawOffset), (int) (hitbox.y - yDrawOffset), width, height, null);
+        drawHitbox(graphics);
     }
 
     // Updating position so, that we can hold two keys and run diagonally or stop moving at all.
+    // Also checking, whether it's possible to go in chosen direction.
     private void updatePosition() {
         moving = false; // false by default
+        if (!left && !right && !up && !down) // If not holding any keys we should not be here.
+            return;
+
+        float xSpeed = 0, ySpeed = 0; // Speed is by default 0.
 
         if (left && !right) {
-            x -= playerSpeed;
-            moving = true; // if moving then true
+            xSpeed = -playerSpeed;
         } else if (right && !left) {
-            x += playerSpeed;
-            moving = true;
+            xSpeed = playerSpeed;
         }
 
         if (up && !down) {
-            y -= playerSpeed;
-            moving = true;
+            ySpeed = -playerSpeed;
         } else if (down && !up) {
-            y += playerSpeed;
+            ySpeed = playerSpeed;
+        }
+
+        // x, y, width & height is defined in Entity class.
+//        if (canMoveHere(x + xSpeed, y + ySpeed, width, height, lvlData)) {
+//            this.x += xSpeed;
+//            this.y += ySpeed;
+//            moving = true;
+//        }
+        // Moving now depends on hitbox of a player (20x28), not a player original sprite size (64x40).
+        if (canMoveHere(hitbox.x + xSpeed, hitbox.y + ySpeed, hitbox.width, hitbox.height, lvlData)) {
+            hitbox.x += xSpeed;
+            hitbox.y += ySpeed;
             moving = true;
         }
     }
@@ -114,6 +134,10 @@ public class Player extends Entity {
                 animations[j][i] = img.getSubimage(i * 64, j * 40, 64, 40);
             }
         }
+    }
+
+    public void loadLvlData(int[][] lvlData) {
+        this.lvlData = lvlData;
     }
 
     public boolean isUp() {
