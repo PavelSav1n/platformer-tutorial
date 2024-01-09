@@ -4,10 +4,11 @@ import ps.main.Game;
 import ps.utils.LoadSave;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import static ps.utils.Constants.PlayerConstants.*;
-import static ps.utils.HelpMethods.canMoveHere;
+import static ps.utils.HelpMethods.*;
 
 public class Player extends Entity {
 
@@ -17,16 +18,23 @@ public class Player extends Entity {
     private int playerDirection = -1; // Moving state. If not moving =-1, otherwise it's 0, 1, 2 or 3
     private boolean moving = false;
     private boolean attacking = false;
-    private boolean up, left, right, down;
+    private boolean up, left, right, down, jump;
     private float playerSpeed = 2.0f;
     private int[][] lvlData; // We are storing lvl data in player class just for now. We need it to detect collision.
-    private float xDrawOffset = 21 * Game.SCALE; // Offset where new hitbox will start (not 0x0 but 21x4)
+    private float xDrawOffset = 21 * Game.SCALE; // Offset where the new hitbox starts (not 0x0 but 21x4). A player drawing will use this.
     private float yDrawOffset = 4 * Game.SCALE;
+    // Jumping / Gravity
+    private float airSpeed = 0f; // Speed at what player travelling through the air (jumping or falling)
+    private float gravity = 0.04f * Game.SCALE; // How fast player will fall back down.
+    private float jumpSpeed = -2.25f * Game.SCALE;
+    private float fallSpeedAfterCollision = 0.5f * Game.SCALE;
+    private boolean inAir = false;
+
 
     public Player(float x, float y, int width, int height) {
         super(x, y, width, height);
         loadAnimations();
-        initHitbox(x, y, 20 * Game.SCALE, 28 * Game.SCALE); // Initializing & Drawing hitbox with a size of 20x28 at x, y.
+        initHitbox(x, y, 20 * Game.SCALE, 27 * Game.SCALE); // Initializing & Drawing hitbox with a size of 20x28 at x, y.
     }
 
     public void update() {
@@ -46,38 +54,68 @@ public class Player extends Entity {
 
     // Updating position so, that we can hold two keys and run diagonally or stop moving at all.
     // Also checking, whether it's possible to go in chosen direction.
+    // Moving now depends on hitbox of a player (20x28), not a player original sprite size (64x40).
     private void updatePosition() {
         moving = false; // false by default
-        if (!left && !right && !up && !down) // If not holding any keys we should not be here.
+
+        if (jump) {
+            jump();
+        }
+        if (!left && !right && !inAir) // If not holding left/right keys and player's not in the air we should not be here.
             return;
 
-        float xSpeed = 0, ySpeed = 0; // Speed is by default 0.
+        float xSpeed = 0; // Speed is by default 0.
 
-        if (left && !right) {
-            xSpeed = -playerSpeed;
-        } else if (right && !left) {
-            xSpeed = playerSpeed;
+        if (left) xSpeed -= playerSpeed;
+        if (right) xSpeed += playerSpeed;
+        if (!inAir) {
+            if (!isEntityOnFloor(hitbox, lvlData)) {
+                inAir = true;
+            }
         }
 
-        if (up && !down) {
-            ySpeed = -playerSpeed;
-        } else if (down && !up) {
-            ySpeed = playerSpeed;
-        }
 
-        // x, y, width & height is defined in Entity class.
-//        if (canMoveHere(x + xSpeed, y + ySpeed, width, height, lvlData)) {
-//            this.x += xSpeed;
-//            this.y += ySpeed;
-//            moving = true;
-//        }
-        // Moving now depends on hitbox of a player (20x28), not a player original sprite size (64x40).
-        if (canMoveHere(hitbox.x + xSpeed, hitbox.y + ySpeed, hitbox.width, hitbox.height, lvlData)) {
+        if (inAir) {
+            if (canMoveHere(hitbox.x, hitbox.y + airSpeed, hitbox.width, hitbox.height, lvlData)) {
+                hitbox.y += airSpeed;
+                airSpeed += gravity;
+                updateXPosition(xSpeed);
+            } else {
+                hitbox.y = getEntityYPosUnderRoofOrAboveFloor(hitbox, airSpeed);
+                if (airSpeed > 0) // If we are going down.
+                    resetInAir();
+                else
+                    airSpeed = fallSpeedAfterCollision;
+                updateXPosition(xSpeed);
+
+            }
+
+        } else
+            updateXPosition(xSpeed);
+        moving = true;
+    }
+
+
+    private void jump() {
+        if (inAir) return;
+        inAir = true;
+        airSpeed = jumpSpeed;
+    }
+
+    private void resetInAir() {
+        inAir = false;
+        airSpeed = 0;
+    }
+
+
+    private void updateXPosition(float xSpeed) {
+        if (canMoveHere(hitbox.x + xSpeed, hitbox.y, hitbox.width, hitbox.height, lvlData)) {
             hitbox.x += xSpeed;
-            hitbox.y += ySpeed;
-            moving = true;
+        } else {
+            hitbox.x = getEntityXPosNextToWall(hitbox, xSpeed);
         }
     }
+
 
     private void setAnimation() {
         int startAnimation = playerAction; // Remember what current animation is before checking is there a switch.
@@ -86,6 +124,13 @@ public class Player extends Entity {
             playerAction = RUNNING;
         } else {
             playerAction = IDLE;
+        }
+
+        if (inAir) {
+            if (airSpeed < 0)
+                playerAction = JUMPING;
+            else
+                playerAction = FALLING;
         }
 
         if (attacking) { // it is here
@@ -138,6 +183,8 @@ public class Player extends Entity {
 
     public void loadLvlData(int[][] lvlData) {
         this.lvlData = lvlData;
+        if (!isEntityOnFloor(hitbox, lvlData))
+            inAir = true;
     }
 
     public boolean isUp() {
@@ -170,6 +217,10 @@ public class Player extends Entity {
 
     public void setDown(boolean down) {
         this.down = down;
+    }
+
+    public void setJump(boolean jump) {
+        this.jump = jump;
     }
 
     public void resetDirectionBooleans() {
