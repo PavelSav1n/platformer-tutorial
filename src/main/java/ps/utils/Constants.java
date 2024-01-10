@@ -1,6 +1,20 @@
 package ps.utils;
 
+import ps.main.Game;
+
 public class Constants {
+
+    public static class UI {
+
+        public static class Buttons {
+            // Width & height of UI Menu with scaling:
+            public static final int B_WIDTH_DEFAULT = 140; // default values is for cropping original image
+            public static final int B_HEIGHT_DEFAULT = 56;
+            public static final int B_WIDTH = (int) (B_WIDTH_DEFAULT * Game.SCALE); // this is for ingame after scaling.
+            public static final int B_HEIGHT = (int) (B_HEIGHT_DEFAULT * Game.SCALE);
+        }
+
+    }
 
     public static class Directions {
         public static final int LEFT = 0;

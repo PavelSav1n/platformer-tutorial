@@ -19,7 +19,7 @@ public class Player extends Entity {
     private boolean moving = false;
     private boolean attacking = false;
     private boolean up, left, right, down, jump;
-    private float playerSpeed = 2.0f;
+    private float playerSpeed = 1.0f * Game.SCALE;
     private int[][] lvlData; // We are storing lvl data in player class just for now. We need it to detect collision.
     private float xDrawOffset = 21 * Game.SCALE; // Offset where the new hitbox starts (not 0x0 but 21x4). A player drawing will use this.
     private float yDrawOffset = 4 * Game.SCALE;
@@ -34,7 +34,7 @@ public class Player extends Entity {
     public Player(float x, float y, int width, int height) {
         super(x, y, width, height);
         loadAnimations();
-        initHitbox(x, y, 20 * Game.SCALE, 27 * Game.SCALE); // Initializing & Drawing hitbox with a size of 20x28 at x, y.
+        initHitbox(x, y, (int) (20 * Game.SCALE), (int) (27 * Game.SCALE)); // Initializing & Drawing hitbox with a size of 20x28 at x, y.
     }
 
     public void update() {
