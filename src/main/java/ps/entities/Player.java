@@ -4,7 +4,6 @@ import ps.main.Game;
 import ps.utils.LoadSave;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import static ps.utils.Constants.PlayerConstants.*;

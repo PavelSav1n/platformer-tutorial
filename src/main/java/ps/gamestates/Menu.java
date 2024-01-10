@@ -31,6 +31,7 @@ public class Menu extends State implements StateMethods {
 
     }
 
+    // Placing menu buttons manually assigning yPos and rowIndex.
     private void loadButtons() {
         buttons[0] = new MenuButton(Game.GAME_WIDTH / 2, (int) (150 * Game.SCALE), 0, Gamestate.PLAYING);
         buttons[1] = new MenuButton(Game.GAME_WIDTH / 2, (int) (220 * Game.SCALE), 1, Gamestate.OPTIONS);
