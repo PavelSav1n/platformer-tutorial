@@ -9,6 +9,10 @@ import ps.utils.LoadSave;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.util.Random;
+
+import static ps.utils.Constants.UI.Environment.*;
 
 public class Playing extends State implements StateMethods {
 
@@ -17,16 +21,28 @@ public class Playing extends State implements StateMethods {
     private PauseOverlay pauseOverlay;
     private boolean paused = false;
 
-    private int xLvlOffset;
-    private int leftBorder = (int) (0.2 * Game.GAME_WIDTH); // 20% of game_width
-    private int rightBorder = (int) (0.8 * Game.GAME_WIDTH);
-    private int lvlTilesWide = LoadSave.GetLevelData()[0].length; // number of current level tiles in width
-    private int maxTilesOffset = lvlTilesWide - Game.TILES_IN_WIDTH; // number of tiles of current level offset (off the screen) in width
-    private int maxLvlOffsetX = maxTilesOffset * Game.TILES_SIZE; // number of px of current level offset
+    private int xLvlOffset; // will be applied when player reach left or right offset border
+    private final int leftBorder = (int) (0.2 * Game.GAME_WIDTH); // 20% of game_width
+    private final int rightBorder = (int) (0.8 * Game.GAME_WIDTH);
+    private final int lvlTilesWide = LoadSave.GetLevelData()[0].length; // number of current level tiles in width
+    private final int maxTilesOffset = lvlTilesWide - Game.TILES_IN_WIDTH; // number of tiles of current level offset (off the screen) in width
+    private final int maxLvlOffsetX = maxTilesOffset * Game.TILES_SIZE; // number of px of current level offset
+
+    private BufferedImage backgroundImg, bigCloud, smallCloud;
+    private int[] smallCloudsPos; // will store Y values of small clouds to place them randomly.
+    private Random rnd = new Random();
 
     public Playing(Game game) {
         super(game);
         initClasses();
+
+        backgroundImg = LoadSave.GetSpriteAtlas(LoadSave.PLAYING_BG_IMG);
+        bigCloud = LoadSave.GetSpriteAtlas(LoadSave.BIG_CLOUDS);
+        smallCloud = LoadSave.GetSpriteAtlas(LoadSave.SMALL_CLOUDS);
+        smallCloudsPos = new int[8];
+        for (int i = 0; i < smallCloudsPos.length; i++) {
+            smallCloudsPos[i] = (int) (90 * Game.SCALE) + rnd.nextInt((int) (100 * Game.SCALE)); // we got here from 90 to 100 at least.
+        }
     }
 
     // Initializing
@@ -70,6 +86,9 @@ public class Playing extends State implements StateMethods {
 
     @Override
     public void draw(Graphics graphics) {
+        graphics.drawImage(backgroundImg, 0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT, null);
+        drawClouds(graphics);
+
         levelManager.draw(graphics, xLvlOffset);
         player.render(graphics, xLvlOffset);
 
@@ -78,6 +97,16 @@ public class Playing extends State implements StateMethods {
             graphics.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT); // Filling rect in bg to darken gameplay while paused.
             pauseOverlay.draw(graphics);
         }
+    }
+
+    private void drawClouds(Graphics g) {
+        for (int i = 0; i < 3; i++) {
+            g.drawImage(bigCloud, i * BIG_CLOUD_WIDTH - (int) (xLvlOffset * 0.2), (int) (204 * Game.SCALE), BIG_CLOUD_WIDTH, BIG_CLOUD_HEIGHT, null);
+        }
+        for (int i = 0; i < smallCloudsPos.length; i++) {
+            g.drawImage(smallCloud, SMALL_CLOUD_WIDTH * 4 * i - (int) (xLvlOffset * 0.3), smallCloudsPos[i], SMALL_CLOUD_WIDTH, SMALL_CLOUD_HEIGHT, null);
+        }
+
     }
 
     @Override

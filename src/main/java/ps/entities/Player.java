@@ -60,8 +60,7 @@ public class Player extends Entity {
         if (jump) {
             jump();
         }
-//        if (!left && !right && !inAir) // If not holding left/right keys and player's not in the air we should not be here.
-//            return;
+        // If A+D or not A+D we should not be here.
         if (!inAir)
             if ((!left && !right) || (right && left)) return;
 
