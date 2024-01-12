@@ -43,11 +43,11 @@ public class Player extends Entity {
         setAnimation(); // to set proper playerAction
     }
 
-    public void render(Graphics graphics) {
+    public void render(Graphics graphics, int lvlOffset) {
         // getting image and drawing width x height (64x40 -- default) part at animations[i][j] of initial image
         // hitbox.x -xDrawOffset is where to draw a player.
         // We're drawing a player after drawing a hitbox, with a bit of offset.
-        graphics.drawImage(animations[playerAction][animationIndex], (int) (hitbox.x - xDrawOffset), (int) (hitbox.y - yDrawOffset), width, height, null);
+        graphics.drawImage(animations[playerAction][animationIndex], (int) (hitbox.x - xDrawOffset) - lvlOffset, (int) (hitbox.y - yDrawOffset), width, height, null);
         drawHitbox(graphics);
     }
 
@@ -60,8 +60,10 @@ public class Player extends Entity {
         if (jump) {
             jump();
         }
-        if (!left && !right && !inAir) // If not holding left/right keys and player's not in the air we should not be here.
-            return;
+//        if (!left && !right && !inAir) // If not holding left/right keys and player's not in the air we should not be here.
+//            return;
+        if (!inAir)
+            if ((!left && !right) || (right && left)) return;
 
         float xSpeed = 0; // Speed is by default 0.
 

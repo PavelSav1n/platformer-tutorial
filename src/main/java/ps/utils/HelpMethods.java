@@ -19,7 +19,8 @@ public class HelpMethods {
 
     // Defining what solid data is:
     private static boolean isSolid(float x, float y, int[][] lvlData) {
-        if (x < 0 || x >= Game.GAME_WIDTH) return true; // If we are in borders of the Game itself by x & y.
+        int maxWidth = lvlData[0].length * Game.TILES_SIZE;
+        if (x < 0 || x >= maxWidth) return true; // If we are in borders of the Game itself by x & y.
         if (y < 0 || y >= Game.GAME_HEIGHT) return true;
 
         float xIndex = x / Game.TILES_SIZE; // Getting x index scaled down by TITLE_SIZE (for example if x is at 65, when TS is 64, it means we're at 2nd column of the lvl)

@@ -4,6 +4,7 @@ import ps.entities.Player;
 import ps.levels.LevelManager;
 import ps.main.Game;
 import ps.ui.PauseOverlay;
+import ps.utils.LoadSave;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -15,6 +16,13 @@ public class Playing extends State implements StateMethods {
     private LevelManager levelManager;
     private PauseOverlay pauseOverlay;
     private boolean paused = false;
+
+    private int xLvlOffset;
+    private int leftBorder = (int) (0.2 * Game.GAME_WIDTH); // 20% of game_width
+    private int rightBorder = (int) (0.8 * Game.GAME_WIDTH);
+    private int lvlTilesWide = LoadSave.GetLevelData()[0].length; // number of current level tiles in width
+    private int maxTilesOffset = lvlTilesWide - Game.TILES_IN_WIDTH; // number of tiles of current level offset (off the screen) in width
+    private int maxLvlOffsetX = maxTilesOffset * Game.TILES_SIZE; // number of px of current level offset
 
     public Playing(Game game) {
         super(game);
@@ -39,18 +47,37 @@ public class Playing extends State implements StateMethods {
         if (!paused) {
             levelManager.update();
             player.update();
+            checkCloseToBorder();
         } else {
             pauseOverlay.update();
         }
     }
 
+    private void checkCloseToBorder() {
+        int playerX = (int) player.getHitbox().x;
+        int diff = playerX - xLvlOffset;
+
+        if (diff > rightBorder)
+            xLvlOffset += diff - rightBorder;
+        else if (diff < leftBorder)
+            xLvlOffset += diff - leftBorder;
+
+        if (xLvlOffset > maxLvlOffsetX)
+            xLvlOffset = maxLvlOffsetX;
+        if (xLvlOffset < 0)
+            xLvlOffset = 0;
+    }
+
     @Override
     public void draw(Graphics graphics) {
-        levelManager.draw(graphics);
-        player.render(graphics);
+        levelManager.draw(graphics, xLvlOffset);
+        player.render(graphics, xLvlOffset);
 
-        if (paused)
+        if (paused) {
+            graphics.setColor(new Color(0, 0, 0, 150)); // Semi transparent black.
+            graphics.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT); // Filling rect in bg to darken gameplay while paused.
             pauseOverlay.draw(graphics);
+        }
     }
 
     @Override
