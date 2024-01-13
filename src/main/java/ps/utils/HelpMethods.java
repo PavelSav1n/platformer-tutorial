@@ -48,6 +48,8 @@ public class HelpMethods {
         }
     }
 
+    // This method returns an Y px exactly at the beginning of tile or at the [end_of_tile - hitbox.height - 1].
+    // Hitbox must be smaller than tile size.
     public static float getEntityYPosUnderRoofOrAboveFloor(Rectangle2D.Float hitbox, float airSpeed) {
         int previousTileNum = (int) (hitbox.y / Game.TILES_SIZE);
 
@@ -65,10 +67,13 @@ public class HelpMethods {
     public static boolean isEntityOnFloor(Rectangle2D.Float hitbox, int[][] lvlData) {
         // Check the pixel below bottomleft & bottomright corners of hitbox.
         if (!isSolid(hitbox.x, hitbox.y + hitbox.height + 1, lvlData)) {
-            if (!isSolid(hitbox.x + hitbox.width, hitbox.y + hitbox.height + 1, lvlData)) {
-                return false;
-            }
+            return isSolid(hitbox.x + hitbox.width, hitbox.y + hitbox.height + 1, lvlData);
         }
         return true;
+    }
+
+    // Checking if the hitbox.x + xSpeed pixel isSolid data of lvlData (actually we're not checking pixel hitbox.x + xSpeed + hitbox.width on our right side)
+    public static boolean isFloor(Rectangle2D.Float hitbox, float xSpeed, int[][] lvlData) {
+        return isSolid(hitbox.x + xSpeed, hitbox.y + hitbox.height + 1, lvlData);
     }
 }

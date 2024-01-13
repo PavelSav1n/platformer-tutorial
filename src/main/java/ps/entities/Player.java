@@ -21,7 +21,7 @@ public class Player extends Entity {
     private float playerSpeed = 1.0f * Game.SCALE;
     private int[][] lvlData; // We are storing lvl data in player class just for now. We need it to detect collision.
     private float xDrawOffset = 21 * Game.SCALE; // Offset where the new hitbox starts (not 0x0 but 21x4). A player drawing will use this.
-    private float yDrawOffset = 4 * Game.SCALE;
+    private float yDrawOffset = 4 * Game.SCALE; // Sprite of the player is a bit more than hitbox, so we need some offsets to center sprite
     // Jumping / Gravity
     private float airSpeed = 0f; // Speed at what player travelling through the air (jumping or falling)
     private float gravity = 0.04f * Game.SCALE; // How fast player will fall back down.
@@ -48,7 +48,7 @@ public class Player extends Entity {
         // hitbox.x -xDrawOffset is where to draw a player.
         // We're drawing a player after drawing a hitbox, with a bit of offset.
         graphics.drawImage(animations[playerAction][animationIndex], (int) (hitbox.x - xDrawOffset) - lvlOffset, (int) (hitbox.y - yDrawOffset), width, height, null);
-        drawHitbox(graphics);
+        drawHitbox(graphics, lvlOffset);
     }
 
     // Updating position so, that we can hold two keys and run diagonally or stop moving at all.

@@ -1,5 +1,6 @@
 package ps.gamestates;
 
+import ps.entities.EnemyManager;
 import ps.entities.Player;
 import ps.levels.LevelManager;
 import ps.main.Game;
@@ -18,12 +19,13 @@ public class Playing extends State implements StateMethods {
 
     private Player player;
     private LevelManager levelManager;
+    private EnemyManager enemyManager;
     private PauseOverlay pauseOverlay;
     private boolean paused = false;
 
     private int xLvlOffset; // will be applied when player reach left or right offset border
-    private final int leftBorder = (int) (0.2 * Game.GAME_WIDTH); // 20% of game_width
-    private final int rightBorder = (int) (0.8 * Game.GAME_WIDTH);
+    private final int leftBorder = (int) (0.45 * Game.GAME_WIDTH); // 20% of game_width
+    private final int rightBorder = (int) (0.55 * Game.GAME_WIDTH);
     private final int lvlTilesWide = LoadSave.GetLevelData()[0].length; // number of current level tiles in width
     private final int maxTilesOffset = lvlTilesWide - Game.TILES_IN_WIDTH; // number of tiles of current level offset (off the screen) in width
     private final int maxLvlOffsetX = maxTilesOffset * Game.TILES_SIZE; // number of px of current level offset
@@ -50,11 +52,14 @@ public class Playing extends State implements StateMethods {
     // 2. Player
     // 3. LevelData
     // 4. Pause Overlay
+    // 5. Enemies
     private void initClasses() {
         levelManager = new LevelManager(game);
+        enemyManager = new EnemyManager(this);
         player = new Player(250, 250, (int) (64 * Game.SCALE), (int) (40 * Game.SCALE));
         player.loadLvlData(levelManager.getCurrentLevel().getLevelData());
         pauseOverlay = new PauseOverlay(this);
+
     }
 
 
@@ -62,6 +67,7 @@ public class Playing extends State implements StateMethods {
     public void update() {
         if (!paused) {
             levelManager.update();
+            enemyManager.update(levelManager.getCurrentLevel().getLevelData()); // To manage lvl data like solid blocks and cliffs inside Enemy class (updateMove() method)
             player.update();
             checkCloseToBorder();
         } else {
@@ -90,6 +96,7 @@ public class Playing extends State implements StateMethods {
         drawClouds(graphics);
 
         levelManager.draw(graphics, xLvlOffset);
+        enemyManager.draw(graphics, xLvlOffset);
         player.render(graphics, xLvlOffset);
 
         if (paused) {

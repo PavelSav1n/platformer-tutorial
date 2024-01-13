@@ -1,5 +1,6 @@
 package ps.utils;
 
+import ps.entities.Crabby;
 import ps.main.Game;
 
 import javax.imageio.ImageIO;
@@ -7,6 +8,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+
+import static ps.utils.Constants.UI.EnemyConstants.CRABBY;
 
 public class LoadSave {
 
@@ -24,6 +28,7 @@ public class LoadSave {
     public static final String PLAYING_BG_IMG = "playing_bg_img.png"; // bg for lvl1
     public static final String BIG_CLOUDS = "big_clouds.png";
     public static final String SMALL_CLOUDS = "small_clouds.png";
+    public static final String CRABBY_SPRITE = "crabby_sprite.png";
 
     public static BufferedImage GetSpriteAtlas(String fileName) {
         BufferedImage img = null;
@@ -44,6 +49,23 @@ public class LoadSave {
             }
         }
         return img;
+    }
+
+    // Fill level with crabies
+    public static ArrayList<Crabby> getCrabs() {
+        BufferedImage img = GetSpriteAtlas(LEVEL_ONE_DATA);
+        ArrayList<Crabby> list = new ArrayList<>();
+
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+                int value = color.getGreen();
+                if (value == CRABBY)
+                    list.add(new Crabby(j * Game.TILES_SIZE, i * Game.TILES_SIZE)); // filling list with crabbies.
+
+            }
+        }
+        return list;
     }
 
     // Returns int 2dArray which is filled with red color int (0-255). It will be mapped on our level.
