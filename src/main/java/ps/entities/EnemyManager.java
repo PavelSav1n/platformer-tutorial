@@ -4,6 +4,7 @@ import ps.gamestates.Playing;
 import ps.utils.LoadSave;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -30,7 +31,8 @@ public class EnemyManager {
 
     public void update(int[][] lvlData, Player player) {
         for (Crabby crabby : crabbies) {
-            crabby.update(lvlData, player);
+            if (crabby.isActive()) // If DEAD, not going to update
+                crabby.update(lvlData, player);
         }// Just a peculiar way to update each element in ArrayList<Crabby> (real crab objs)
     }
 
@@ -39,11 +41,32 @@ public class EnemyManager {
     }
 
     // To draw real crab objs we need to know what state and what aniIndex we're drawing.
+    // X if offseted by 1 -- lvl movement, 2 -- hitbox offset to fit sprites in hitbox, 3 -- flipX when they are walking in RIGHT direction
+    // width is multiplied by -1 when crabbies go RIGHT.
     private void drawCrabs(Graphics g, int xLvlOffset) {
         for (Crabby crabby : crabbies) {
-            g.drawImage(crabbyArr[crabby.getEnemyState()][crabby.getAniIndex()], (int) crabby.getHitbox().x - xLvlOffset - CRABBY_DRAWOFFSET_X, (int) crabby.getHitbox().y - CRABBY_DRAWOFFSET_Y, CRABBY_WIDTH, CRABBY_HEIGHT, null);
-            crabby.drawHitbox(g, xLvlOffset);
+            if (crabby.isActive()) {
+                g.drawImage(
+                        crabbyArr[crabby.getEnemyState()][crabby.getAniIndex()],
+                        (int) crabby.getHitbox().x - xLvlOffset - CRABBY_DRAWOFFSET_X + crabby.flipX(),
+                        (int) crabby.getHitbox().y - CRABBY_DRAWOFFSET_Y,
+                        CRABBY_WIDTH * crabby.flipW(), CRABBY_HEIGHT, null);
+                crabby.drawHitbox(g, xLvlOffset);
+                crabby.drawAttackBox(g, xLvlOffset);
+            }
         }
+    }
+
+    public void checkEnemyHit(Rectangle2D.Float attackBox) {
+        for (Crabby crabby : crabbies) {
+            if (crabby.isActive()) {
+                if (attackBox.intersects(crabby.getHitbox())) {
+                    crabby.hurt(10);
+                    return;
+                }
+            }
+        }
+
     }
 
     private void loadEnemyImgs() {
@@ -56,6 +79,12 @@ public class EnemyManager {
 
             }
 
+        }
+    }
+
+    public void resetAllEnemies() {
+        for (Crabby crabby : crabbies) {
+            crabby.resetEnemy();
         }
     }
 }
