@@ -67,7 +67,7 @@ public class Playing extends State implements StateMethods {
     public void update() {
         if (!paused) {
             levelManager.update();
-            enemyManager.update(levelManager.getCurrentLevel().getLevelData()); // To manage lvl data like solid blocks and cliffs inside Enemy class (updateMove() method)
+            enemyManager.update(levelManager.getCurrentLevel().getLevelData(), player); // To manage lvl data like solid blocks and cliffs inside Enemy class (updateMove() method)
             player.update();
             checkCloseToBorder();
         } else {

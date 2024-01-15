@@ -17,21 +17,6 @@ public class HelpMethods {
         return false;
     }
 
-    // Defining what solid data is:
-    private static boolean isSolid(float x, float y, int[][] lvlData) {
-        int maxWidth = lvlData[0].length * Game.TILES_SIZE;
-        if (x < 0 || x >= maxWidth) return true; // If we are in borders of the Game itself by x & y.
-        if (y < 0 || y >= Game.GAME_HEIGHT) return true;
-
-        float xIndex = x / Game.TILES_SIZE; // Getting x index scaled down by TITLE_SIZE (for example if x is at 65, when TS is 64, it means we're at 2nd column of the lvl)
-        float yIndex = y / Game.TILES_SIZE;
-
-        int value = lvlData[(int) yIndex][(int) xIndex];
-
-        if (value >= 48 || value < 0 || value != 11)
-            return true; // We have only 48 tiles, so checking that and 11th tile is void tile, so we can pass through.
-        return false;
-    }
 
     public static float getEntityXPosNextToWall(Rectangle2D.Float hitbox, float xSpeed) {
 
@@ -76,4 +61,51 @@ public class HelpMethods {
     public static boolean isFloor(Rectangle2D.Float hitbox, float xSpeed, int[][] lvlData) {
         return isSolid(hitbox.x + xSpeed, hitbox.y + hitbox.height + 1, lvlData);
     }
+
+    // Defining what solid data is:
+    private static boolean isSolid(float x, float y, int[][] lvlData) {
+        int maxWidth = lvlData[0].length * Game.TILES_SIZE;
+        if (x < 0 || x >= maxWidth) return true; // If we are in borders of the Game itself by x & y.
+        if (y < 0 || y >= Game.GAME_HEIGHT) return true;
+
+        float xIndex = x / Game.TILES_SIZE; // Getting x index scaled down by TITLE_SIZE (for example if x is at 65, when TS is 64, it means we're at 2nd column of the lvl)
+        float yIndex = y / Game.TILES_SIZE;
+
+        return isTileSolid((int) xIndex, (int) yIndex, lvlData);
+
+    }
+
+    public static boolean isTileSolid(int xTile, int yTile, int[][] lvlData) {
+        int value = lvlData[yTile][xTile];
+
+        if (value >= 48 || value < 0 || value != 11)
+            return true; // We have only 48 tiles, so checking that and 11th tile is void tile, so we can pass through.
+        return false;
+    }
+
+    public static boolean isAllTilesWalkable(int xStart, int xEnd, int y, int[][] lvlData) {
+        for (int i = 0; i < xEnd - xStart; i++) {
+            if (isTileSolid(xStart + i, y, lvlData))
+                return false;
+            if (!isTileSolid(xStart + i, y+1, lvlData))
+                return false;
+        }
+        return true;
+
+    }
+
+    // Checking whether there is an obstacle in sight between two objects.
+    public static boolean isSightClear(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int tileY) {
+        int firstXTile = (int) (firstHitbox.x / Game.TILES_SIZE);
+        int secondXTile = (int) (secondHitbox.x / Game.TILES_SIZE);
+
+        // We need to check only those tile which in between firstXTile and secondXTile
+        if (firstXTile > secondXTile)  // Going through tile from left to right, so we need this check
+            return isAllTilesWalkable(secondXTile, firstXTile, tileY, lvlData);
+        else
+            return isAllTilesWalkable(firstXTile, secondXTile, tileY, lvlData);
+
+
+    }
 }
+
