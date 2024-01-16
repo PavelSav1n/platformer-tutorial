@@ -1,6 +1,7 @@
 package ps.entities;
 
 import ps.gamestates.Playing;
+import ps.levels.Level;
 import ps.utils.LoadSave;
 
 import java.awt.*;
@@ -21,19 +22,22 @@ public class EnemyManager {
         this.playing = playing;
 
         loadEnemyImgs();
-        addEnemies();
     }
 
-    private void addEnemies() {
-        crabbies = LoadSave.getCrabs(); // getting crabbies list from level data.
-        System.out.println("size of crabs: " + crabbies.size());
+    public void loadEnemies(Level level) {
+        crabbies = level.getCrabs(); // getting crabbies list from level class.
     }
 
     public void update(int[][] lvlData, Player player) {
+        boolean isAnyActive = false;
         for (Crabby crabby : crabbies) {
-            if (crabby.isActive()) // If DEAD, not going to update
+            if (crabby.isActive()) {// If DEAD, not going to update
                 crabby.update(lvlData, player);
+                isAnyActive = true;
+            }
         }// Just a peculiar way to update each element in ArrayList<Crabby> (real crab objs)
+        if (!isAnyActive)
+            playing.setLevelCompleted(true);
     }
 
     public void draw(Graphics g, int xLvlOffset) {
@@ -57,6 +61,7 @@ public class EnemyManager {
         }
     }
 
+    // Player damage to Crabbies
     public void checkEnemyHit(Rectangle2D.Float attackBox) {
         for (Crabby crabby : crabbies) {
             if (crabby.isActive()) {

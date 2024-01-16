@@ -1,8 +1,14 @@
 package ps.utils;
 
+import ps.entities.Crabby;
 import ps.main.Game;
 
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
+import static ps.utils.Constants.UI.EnemyConstants.CRABBY;
 
 public class HelpMethods {
 
@@ -59,7 +65,10 @@ public class HelpMethods {
 
     // Checking if the hitbox.x + xSpeed pixel isSolid data of lvlData (actually we're not checking pixel hitbox.x + xSpeed + hitbox.width on our right side)
     public static boolean isFloor(Rectangle2D.Float hitbox, float xSpeed, int[][] lvlData) {
-        return isSolid(hitbox.x + xSpeed, hitbox.y + hitbox.height + 1, lvlData);
+        if (xSpeed > 0) // It means Enemy is moving RIGHT
+            return isSolid(hitbox.x + hitbox.width + xSpeed, hitbox.y + hitbox.height + 1, lvlData);
+        else
+            return isSolid(hitbox.x + xSpeed, hitbox.y + hitbox.height + 1, lvlData);
     }
 
     // Defining what solid data is:
@@ -87,7 +96,7 @@ public class HelpMethods {
         for (int i = 0; i < xEnd - xStart; i++) {
             if (isTileSolid(xStart + i, y, lvlData))
                 return false;
-            if (!isTileSolid(xStart + i, y+1, lvlData))
+            if (!isTileSolid(xStart + i, y + 1, lvlData))
                 return false;
         }
         return true;
@@ -106,6 +115,53 @@ public class HelpMethods {
             return isAllTilesWalkable(firstXTile, secondXTile, tileY, lvlData);
 
 
+    }
+
+    // Returns int 2dArray which is filled with red color int (0-255). It will be mapped on our level.
+    public static int[][] GetLevelData(BufferedImage img) {
+//        int[][] lvlData = new int[Game.TILES_IN_HEIGHT][Game.TILES_IN_WIDTH]; // static lvl
+        int[][] lvlData = new int[img.getHeight()][img.getWidth()]; // will be lvls with different dimensions
+        // Going through the image pixel array.
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+                int value = color.getRed();
+                if (value >= 48)
+                    value = 0; // If there's a mistake in initial image, we can easily overcome the 48 red int value of our sprite array. So here is protection.
+                lvlData[i][j] = value; // saving red data to 2dArray
+            }
+        }
+        return lvlData;
+    }
+
+    // Fill the list with crabs with the specified coordinates according to lvl atlas.
+    public static ArrayList<Crabby> GetCrabs(BufferedImage img) {
+        ArrayList<Crabby> list = new ArrayList<>();
+
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+                int value = color.getGreen();
+                if (value == CRABBY)
+                    list.add(new Crabby(j * Game.TILES_SIZE, i * Game.TILES_SIZE)); // filling list with crabbies.
+
+            }
+        }
+        return list;
+    }
+
+    public static Point GetPlayerSpawn(BufferedImage img) {
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+                int value = color.getGreen();
+                if (value == 100) {
+                    return new Point(j * Game.TILES_SIZE, i * Game.TILES_SIZE);
+                }
+
+            }
+        }
+        return new Point(1 * Game.TILES_SIZE, 1 * Game.TILES_SIZE);
     }
 }
 

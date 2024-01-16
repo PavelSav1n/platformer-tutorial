@@ -5,6 +5,7 @@ import ps.entities.Player;
 import ps.levels.LevelManager;
 import ps.main.Game;
 import ps.ui.GameOverOverlay;
+import ps.ui.LevelCompletedOverlay;
 import ps.ui.PauseOverlay;
 import ps.utils.LoadSave;
 
@@ -24,19 +25,22 @@ public class Playing extends State implements StateMethods {
     private EnemyManager enemyManager;
     private PauseOverlay pauseOverlay;
     private GameOverOverlay gameOverOverlay;
+    private LevelCompletedOverlay levelCompletedOverlay;
+
     private boolean paused = false;
 
     private int xLvlOffset; // will be applied when player reach left or right offset border
     private final int leftBorder = (int) (0.45 * Game.GAME_WIDTH); // 20% of game_width
     private final int rightBorder = (int) (0.55 * Game.GAME_WIDTH);
-    private final int lvlTilesWide = LoadSave.GetLevelData()[0].length; // number of current level tiles in width
-    private final int maxTilesOffset = lvlTilesWide - Game.TILES_IN_WIDTH; // number of tiles of current level offset (off the screen) in width
-    private final int maxLvlOffsetX = maxTilesOffset * Game.TILES_SIZE; // number of px of current level offset
+    private int maxLvlOffsetX; // number of px of current level offset
 
     private BufferedImage backgroundImg, bigCloud, smallCloud;
     private int[] smallCloudsPos; // will store Y values of small clouds to place them randomly.
     private Random rnd = new Random();
+
     private boolean gameOver;
+    private boolean levelCompleted;
+
 
     public Playing(Game game) {
         super(game);
@@ -49,6 +53,30 @@ public class Playing extends State implements StateMethods {
         for (int i = 0; i < smallCloudsPos.length; i++) {
             smallCloudsPos[i] = (int) (90 * Game.SCALE) + rnd.nextInt((int) (100 * Game.SCALE)); // we got here from 90 to 100 at least.
         }
+        calcLvlOffset();
+        loadStartLevel();
+    }
+
+    public void setMaxLvlOffsetX(int maxLvlOffsetX) {
+        this.maxLvlOffsetX = maxLvlOffsetX;
+    }
+
+    public EnemyManager getEnemyManager() {
+        return enemyManager;
+    }
+
+    public void loadNextLevel() {
+        resetAll();
+        levelManager.loadNextLevel();
+        player.setSpawn(levelManager.getCurrentLevel().getPlayerSpawn());
+    }
+
+    private void loadStartLevel() {
+        enemyManager.loadEnemies(levelManager.getCurrentLevel());
+    }
+
+    private void calcLvlOffset() {
+        maxLvlOffsetX = levelManager.getCurrentLevel().getLvlOffsetX();
     }
 
     // Initializing
@@ -60,23 +88,29 @@ public class Playing extends State implements StateMethods {
     private void initClasses() {
         levelManager = new LevelManager(game);
         enemyManager = new EnemyManager(this);
+
         player = new Player(250, 250, (int) (64 * Game.SCALE), (int) (40 * Game.SCALE), this);
         player.loadLvlData(levelManager.getCurrentLevel().getLevelData());
+        player.setSpawn(levelManager.getCurrentLevel().getPlayerSpawn());
+
         pauseOverlay = new PauseOverlay(this);
         gameOverOverlay = new GameOverOverlay(this);
+        levelCompletedOverlay = new LevelCompletedOverlay(this);
 
     }
 
 
     @Override
     public void update() {
-        if (!paused && !gameOver) {
+        if (paused) {
+            pauseOverlay.update();
+        } else if (levelCompleted) {
+            levelCompletedOverlay.update();
+        } else if (!gameOver) {
             levelManager.update();
             enemyManager.update(levelManager.getCurrentLevel().getLevelData(), player); // To manage lvl data like solid blocks and cliffs inside Enemy class (updateMove() method)
             player.update();
             checkCloseToBorder();
-        } else {
-            pauseOverlay.update();
         }
     }
 
@@ -101,8 +135,8 @@ public class Playing extends State implements StateMethods {
         drawClouds(graphics);
 
         levelManager.draw(graphics, xLvlOffset);
-        enemyManager.draw(graphics, xLvlOffset);
         player.render(graphics, xLvlOffset);
+        enemyManager.draw(graphics, xLvlOffset);
 
         if (paused) {
             graphics.setColor(new Color(0, 0, 0, 150)); // Semi transparent black.
@@ -110,7 +144,10 @@ public class Playing extends State implements StateMethods {
             pauseOverlay.draw(graphics);
         } else if (gameOver) {
             gameOverOverlay.draw(graphics);
+        } else if (levelCompleted) {
+            levelCompletedOverlay.draw(graphics);
         }
+
     }
 
     private void drawClouds(Graphics g) {
@@ -127,6 +164,7 @@ public class Playing extends State implements StateMethods {
         //reset enemy, player, everything...
         gameOver = false;
         paused = false;
+        levelCompleted = false;
         player.resetAll();
         enemyManager.resetAllEnemies();
     }
@@ -145,9 +183,13 @@ public class Playing extends State implements StateMethods {
 
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
-        if (!gameOver)
+        if (!gameOver) {
             if (paused)
                 pauseOverlay.mousePressed(mouseEvent);
+            else if (levelCompleted) {
+                levelCompletedOverlay.mousePressed(mouseEvent);
+            }
+        }
     }
 
     public void mouseDragged(MouseEvent mouseEvent) {
@@ -158,16 +200,24 @@ public class Playing extends State implements StateMethods {
 
     @Override
     public void mouseReleased(MouseEvent mouseEvent) {
-        if (!gameOver)
+        if (!gameOver) {
             if (paused)
                 pauseOverlay.mouseReleased(mouseEvent);
+            else if (levelCompleted) {
+                levelCompletedOverlay.mouseReleased(mouseEvent);
+            }
+        }
     }
 
     @Override
     public void mouseMoved(MouseEvent mouseEvent) {
-        if (!gameOver)
+        if (!gameOver) {
             if (paused)
                 pauseOverlay.mouseMoved(mouseEvent);
+            else if (levelCompleted) {
+                levelCompletedOverlay.mouseMoved(mouseEvent);
+            }
+        }
     }
 
     @Override
@@ -222,6 +272,11 @@ public class Playing extends State implements StateMethods {
 
     public void setGameOver(boolean gameOver) {
         this.gameOver = gameOver;
+
+    }
+
+    public void setLevelCompleted(boolean levelCompleted) {
+        this.levelCompleted = levelCompleted;
 
     }
 }

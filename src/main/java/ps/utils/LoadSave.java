@@ -6,8 +6,10 @@ import ps.main.Game;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 
 import static ps.utils.Constants.UI.EnemyConstants.CRABBY;
@@ -17,7 +19,7 @@ public class LoadSave {
     public static final String PLAYER_ATLAS = "player_sprites.png";
     public static final String LEVEL_ATLAS = "outside_sprites.png";
     //    public static final String LEVEL_ONE_DATA = "level_one_data.png"; // each pixel of this file represents an entity of a game (blocks, enemies, objects, etc)
-    public static final String LEVEL_ONE_DATA = "level_one_data_long.png";
+//    public static final String LEVEL_ONE_DATA = "level_one_data_long.png";
     public static final String MENU_BUTTONS = "button_atlas.png";
     public static final String MENU_BACKGROUND = "menu_background.png"; // bg plate of menu
     public static final String MENU_BACKGROUND_IMG = "background_menu.png"; // bg of menu
@@ -30,6 +32,7 @@ public class LoadSave {
     public static final String SMALL_CLOUDS = "small_clouds.png";
     public static final String CRABBY_SPRITE = "crabby_sprite.png";
     public static final String STATUS_BAR = "health_power_bar.png";
+    public static final String COMPLETED_IMG = "completed_sprite.png";
 
     public static BufferedImage GetSpriteAtlas(String fileName) {
         BufferedImage img = null;
@@ -52,38 +55,73 @@ public class LoadSave {
         return img;
     }
 
-    // Fill level with crabies
-    public static ArrayList<Crabby> getCrabs() {
-        BufferedImage img = GetSpriteAtlas(LEVEL_ONE_DATA);
-        ArrayList<Crabby> list = new ArrayList<>();
+    // Returns imgs array of all lvl sprites in url's folder
+    public static BufferedImage[] getAllLevels() {
+        URL url = LoadSave.class.getResource("/lvls");
+        File file = null;
 
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-                int value = color.getGreen();
-                if (value == CRABBY)
-                    list.add(new Crabby(j * Game.TILES_SIZE, i * Game.TILES_SIZE)); // filling list with crabbies.
 
+        try { // Getting actual resource folder (it's not a "file" in its usual representation in Windows, but in *NIX is, lol)
+            file = new File(url.toURI());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        File[] files = file.listFiles(); // Receiving the list of paths to images of lvls.
+        File[] filesSorted = new File[files.length];
+
+        for (int i = 0; i < filesSorted.length; i++) { // sorting files paths
+            for (int j = 0; j < files.length; j++) {
+                if (files[j].getName().equals(i + 1 + ".png"))
+                    filesSorted[i] = files[j];
             }
         }
-        return list;
-    }
 
-    // Returns int 2dArray which is filled with red color int (0-255). It will be mapped on our level.
-    public static int[][] GetLevelData() {
-        BufferedImage img = GetSpriteAtlas(LEVEL_ONE_DATA);
-//        int[][] lvlData = new int[Game.TILES_IN_HEIGHT][Game.TILES_IN_WIDTH]; // static lvl
-        int[][] lvlData = new int[img.getHeight()][img.getWidth()]; // will be lvls with different dimensions
-        // Going through the image pixel array.
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-                int value = color.getRed();
-                if (value >= 48)
-                    value = 0; // If there's a mistake in initial image, we can easily overcome the 48 red int value of our sprite array. So here is protection.
-                lvlData[i][j] = value; // saving red data to 2dArray
+        BufferedImage[] imgs = new BufferedImage[filesSorted.length];
+
+        // Filling imgs[] with lvl atlases
+        for (int i = 0; i < imgs.length; i++) {
+            try {
+                imgs[i] = ImageIO.read(filesSorted[i]);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
-        return lvlData;
+        return imgs;
     }
+
+//    // Fill the list with crabs with the specified coordinates according to lvl atlas.
+//    public static ArrayList<Crabby> getCrabs() {
+//        BufferedImage img = GetSpriteAtlas(LEVEL_ONE_DATA);
+//        ArrayList<Crabby> list = new ArrayList<>();
+//
+//        for (int i = 0; i < img.getHeight(); i++) {
+//            for (int j = 0; j < img.getWidth(); j++) {
+//                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+//                int value = color.getGreen();
+//                if (value == CRABBY)
+//                    list.add(new Crabby(j * Game.TILES_SIZE, i * Game.TILES_SIZE)); // filling list with crabbies.
+//
+//            }
+//        }
+//        return list;
+//    }
+
+//    // Returns int 2dArray which is filled with red color int (0-255). It will be mapped on our level.
+//    public static int[][] GetLevelData() {
+//        BufferedImage img = GetSpriteAtlas(LEVEL_ONE_DATA);
+////        int[][] lvlData = new int[Game.TILES_IN_HEIGHT][Game.TILES_IN_WIDTH]; // static lvl
+//        int[][] lvlData = new int[img.getHeight()][img.getWidth()]; // will be lvls with different dimensions
+//        // Going through the image pixel array.
+//        for (int i = 0; i < img.getHeight(); i++) {
+//            for (int j = 0; j < img.getWidth(); j++) {
+//                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+//                int value = color.getRed();
+//                if (value >= 48)
+//                    value = 0; // If there's a mistake in initial image, we can easily overcome the 48 red int value of our sprite array. So here is protection.
+//                lvlData[i][j] = value; // saving red data to 2dArray
+//            }
+//        }
+//        return lvlData;
+//    }
 }

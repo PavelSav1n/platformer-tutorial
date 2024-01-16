@@ -1,22 +1,33 @@
 package ps.levels;
 
+import ps.gamestates.Gamestate;
 import ps.main.Game;
 import ps.utils.LoadSave;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 public class LevelManager {
 
     private Game game;
     private BufferedImage[] levelSprite;
-    private Level levelOne;
+    private ArrayList<Level> levels;
+    private int lvlIndex = 0;
 
     public LevelManager(Game game) {
         this.game = game;
 //        levelSprite = LoadSave.GetSpriteAtlas(LoadSave.LEVEL_ATLAS);
         importOutsideSprites();
-        levelOne = new Level(LoadSave.GetLevelData()); // in order to draw this level we need a loop to go through 2dArray of red pixels
+        levels = new ArrayList<>();
+        buildAllLevels();
+    }
+
+    private void buildAllLevels() {
+        BufferedImage[] allLevels = LoadSave.getAllLevels();
+        for (BufferedImage img : allLevels) {
+            levels.add(new Level(img));
+        }
     }
 
     private void importOutsideSprites() {
@@ -33,8 +44,8 @@ public class LevelManager {
 
     public void draw(Graphics graphics, int lvlOffset) {
         for (int i = 0; i < Game.TILES_IN_HEIGHT; i++) {
-            for (int j = 0; j < levelOne.getLevelData()[0].length; j++) {
-                int index = levelOne.getSpriteIndex(j, i);
+            for (int j = 0; j < levels.get(lvlIndex).getLevelData()[0].length; j++) {
+                int index = levels.get(lvlIndex).getSpriteIndex(j, i);
                 graphics.drawImage(levelSprite[index], Game.TILES_SIZE * j - lvlOffset, Game.TILES_SIZE * i, Game.TILES_SIZE, Game.TILES_SIZE, null);
             }
         }
@@ -46,6 +57,24 @@ public class LevelManager {
     }
 
     public Level getCurrentLevel() {
-        return levelOne;
+        return levels.get(lvlIndex);
+    }
+
+    public int getAmountOfLevels() {
+        return levels.size();
+    }
+
+    public void loadNextLevel() {
+        lvlIndex++;
+        if (lvlIndex >= levels.size()) {
+            lvlIndex = 0;
+            System.out.println("ALL LEVELS COMPLETED!");
+            Gamestate.state = Gamestate.MENU;
+        }
+        // If there are more lvls:
+        Level newLevel = levels.get(lvlIndex);
+        game.getPlaying().getEnemyManager().loadEnemies(newLevel);
+        game.getPlaying().getPlayer().loadLvlData(newLevel.getLevelData());
+        game.getPlaying().setMaxLvlOffsetX(newLevel.getLvlOffsetX());
     }
 }

@@ -3,6 +3,7 @@ package ps.main;
 import ps.gamestates.Gamestate;
 import ps.gamestates.Menu;
 import ps.gamestates.Playing;
+import ps.utils.LoadSave;
 
 import java.awt.*;
 
@@ -36,6 +37,7 @@ public class Game implements Runnable {
 
 
     public Game() {
+
         initClasses(); // initialize all entities needed for a game.
         gamePanel = new GamePanel(this);
         gameWindow = new GameWindow(gamePanel);
@@ -115,7 +117,7 @@ public class Game implements Runnable {
             // Once per sec printing the value of frames counter.
             if (System.currentTimeMillis() - lastCheck >= 1000) {
                 lastCheck = System.currentTimeMillis();
-                System.out.println("FPS: " + frames + " | UPS: " + updates);
+//                System.out.println("FPS: " + frames + " | UPS: " + updates);
                 updates = 0;
                 frames = 0;
             }

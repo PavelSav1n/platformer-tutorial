@@ -40,10 +40,11 @@ public class Crabby extends Enemy {
             switch (enemyState) {
                 case IDLE -> newState(RUNNING); // enemyState becomes equal passed enum and aniTick & aniIndex become 0;
                 case RUNNING -> {
-                    if (canSeePlayer(lvlData, player))
+                    if (canSeePlayer(lvlData, player)) {
                         turnTowardsPlayer(player);
-                    if (isPlayerCloseForAttack(player))
-                        newState(ATTACK);
+                        if (isPlayerCloseForAttack(player))
+                            newState(ATTACK);
+                    }
                     move(lvlData);
                 }
                 case ATTACK -> {

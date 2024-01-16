@@ -8,6 +8,7 @@ public class Constants {
 
         public static class EnemyConstants {
             public static final int CRABBY = 0;
+            public static final int CRABBY_MAX_HEALTH = 10;
 
             public static final int IDLE = 0;
             public static final int RUNNING = 1;
@@ -46,7 +47,7 @@ public class Constants {
             public static int getMaxHealth(int enemyType) {
                 switch (enemyType) {
                     case CRABBY -> {
-                        return 10;
+                        return CRABBY_MAX_HEALTH;
                     }
                     default -> {
                         return 1;
