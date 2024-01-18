@@ -1,9 +1,11 @@
 package ps.objects;
 
 import ps.gamestates.Playing;
+import ps.levels.Level;
 import ps.utils.LoadSave;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -19,13 +21,49 @@ public class ObjectManager {
     public ObjectManager(Playing playing) {
         this.playing = playing;
         loadImgs();
+    }
 
-        potions = new ArrayList<>();
-        containers = new ArrayList<>();
-        potions.add(new Potion(300, 300, RED_POTION));
-        potions.add(new Potion(400, 300, BLUE_POTION));
-        containers.add(new GameContainer(500, 300, BARREL));
-        containers.add(new GameContainer(600, 300, BOX));
+    // Whether player hitbox interact with container hitbox.
+    public void checkObjectTouched(Rectangle2D.Float hitbox) {
+        for (Potion potion : potions) {
+            if (potion.isActive()) {
+                if (hitbox.intersects(potion.getHitbox())) {
+                    potion.setActive(false);
+                    applyEffectToPlayer(potion);
+                }
+            }
+        }
+    }
+
+    public void applyEffectToPlayer(Potion potion) {
+        if (potion.getObjType() == RED_POTION) {
+            playing.getPlayer().changeHealth(RED_POTION_VALUE);
+        } else {
+            playing.getPlayer().changePower(BLUE_POTION_VALUE);
+        }
+    }
+
+    // Whether player attackBox interacts with container hitbox.
+    public void checkObjectHit(Rectangle2D.Float attackbox) {
+        for (GameContainer container : containers) {
+            if (container.isActive()) {
+                if (container.getHitbox().intersects(attackbox)) {
+                    container.setDoAnimation(true);
+                    int type = 0;
+                    if (container.getObjType() == BARREL) // spawning potion at the place of container
+                        type = 1;
+                    potions.add(new Potion(
+                            (int) (container.getHitbox().x + container.getHitbox().width / 2),
+                            (int) (container.getHitbox().y - container.getHitbox().height / 2.5), type));
+                    return; // to not destroy 2 boxes at the same time
+                }
+            }
+        }
+    }
+
+    public void loadObjects(Level newLevel) {
+        potions = newLevel.getPotions();
+        containers = newLevel.getContainers();
     }
 
     private void loadImgs() {
@@ -93,6 +131,15 @@ public class ObjectManager {
                         POTION_HEIGHT,
                         null);
             }
+        }
+    }
+
+    public void resetAllObjects() {
+        for (Potion potion : potions) {
+            potion.reset();
+        }
+        for (GameContainer container : containers) {
+            container.reset();
         }
     }
 }

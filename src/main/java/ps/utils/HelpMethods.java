@@ -2,6 +2,8 @@ package ps.utils;
 
 import ps.entities.Crabby;
 import ps.main.Game;
+import ps.objects.GameContainer;
+import ps.objects.Potion;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -9,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import static ps.utils.Constants.EnemyConstants.CRABBY;
+import static ps.utils.Constants.ObjectConstants.*;
 
 public class HelpMethods {
 
@@ -145,6 +148,36 @@ public class HelpMethods {
                 if (value == CRABBY)
                     list.add(new Crabby(j * Game.TILES_SIZE, i * Game.TILES_SIZE)); // filling list with crabbies.
 
+            }
+        }
+        return list;
+    }
+
+    // Fill the list with Potions with the specified coordinates according to lvl atlas.
+    public static ArrayList<Potion> GetPotions(BufferedImage img) {
+        ArrayList<Potion> list = new ArrayList<>();
+
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+                int value = color.getBlue();
+                if (value == RED_POTION || value == BLUE_POTION)
+                    list.add(new Potion(j * Game.TILES_SIZE, i * Game.TILES_SIZE, value));
+            }
+        }
+        return list;
+    }
+
+    // Fill the list with game containers with the specified coordinates according to lvl atlas.
+    public static ArrayList<GameContainer> GetContainers(BufferedImage img) {
+        ArrayList<GameContainer> list = new ArrayList<>();
+
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+                int value = color.getBlue();
+                if (value == BARREL || value == BOX)
+                    list.add(new GameContainer(j * Game.TILES_SIZE, i * Game.TILES_SIZE, value));
             }
         }
         return list;

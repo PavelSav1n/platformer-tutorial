@@ -70,8 +70,10 @@ public class Playing extends State implements StateMethods {
         player.setSpawn(levelManager.getCurrentLevel().getPlayerSpawn());
     }
 
+    // Initialising enemies and objects of the game.
     private void loadStartLevel() {
         enemyManager.loadEnemies(levelManager.getCurrentLevel());
+        objectManager.loadObjects(levelManager.getCurrentLevel());
     }
 
     private void calcLvlOffset() {
@@ -169,6 +171,7 @@ public class Playing extends State implements StateMethods {
         levelCompleted = false;
         player.resetAll();
         enemyManager.resetAllEnemies();
+        objectManager.resetAllObjects();
     }
 
     public void checkEnemyHit(Rectangle2D.Float attackBox) {
@@ -177,15 +180,18 @@ public class Playing extends State implements StateMethods {
 
     @Override
     public void mouseClicked(MouseEvent mouseEvent) {
-        if (!gameOver)
-            if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
-                player.setAttacking(true);
-            }
+//        if (!gameOver)
+//            if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
+//                player.setAttacking(true);
+//            }
     }
 
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
         if (!gameOver) {
+            if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
+                player.setAttacking(true);
+            }
             if (paused)
                 pauseOverlay.mousePressed(mouseEvent);
             else if (levelCompleted) {
@@ -267,7 +273,6 @@ public class Playing extends State implements StateMethods {
 
     public void setLevelCompleted(boolean levelCompleted) {
         this.levelCompleted = levelCompleted;
-
     }
 
     public EnemyManager getEnemyManager() {
@@ -276,5 +281,13 @@ public class Playing extends State implements StateMethods {
 
     public ObjectManager getObjectManager() {
         return objectManager;
+    }
+
+    public void checkPotionTouched(Rectangle2D.Float hitbox) {
+        objectManager.checkObjectTouched(hitbox);
+    }
+
+    public void checkObjectHit(Rectangle2D.Float attackBox) {
+        objectManager.checkObjectHit(attackBox);
     }
 }

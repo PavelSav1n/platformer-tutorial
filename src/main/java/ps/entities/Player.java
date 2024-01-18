@@ -57,10 +57,10 @@ public class Player extends Entity {
         this.playing = playing;
         this.state = IDLE;
         this.maxHealth = 100;
-        this.currentHealth = maxHealth;
+        this.currentHealth = 35;
         this.walkSpeed = Game.SCALE * 1.0f;
         loadAnimations();
-        initHitbox(20,27); // Initializing & Drawing hitbox with a size of 20x27 at x, y.
+        initHitbox(20, 27); // Initializing & Drawing hitbox with a size of 20x27 at x, y.
         initAttackBox();
     }
 
@@ -87,6 +87,8 @@ public class Player extends Entity {
         updateAttackBox();
 
         updatePosition(); // if moving updating position
+        if (moving)
+            checkPotionTouched();
         if (attacking)
             checkAttack();
 //        updateHitbox(); //
@@ -94,11 +96,16 @@ public class Player extends Entity {
         setAnimation(); // to set proper playerAction
     }
 
+    private void checkPotionTouched() {
+        playing.checkPotionTouched(hitbox);
+    }
+
     private void checkAttack() {
         if (attackChecked || animationIndex != 1)
             return;
         attackChecked = true;
         playing.checkEnemyHit(attackBox);
+        playing.checkObjectHit(attackBox);
 
     }
 
@@ -128,7 +135,6 @@ public class Player extends Entity {
         drawAttackBox(graphics, lvlOffset);
         drawUI(graphics);
     }
-
 
 
     private void drawUI(Graphics g) {
@@ -217,11 +223,14 @@ public class Player extends Entity {
 
         if (currentHealth <= 0) {
             currentHealth = 0;
-            //gameOver();
+            // TODO: gameOver();
         } else if (currentHealth >= maxHealth)
             currentHealth = maxHealth;
     }
 
+    public void changePower(int bluePotionValue) {
+        System.out.println("ADDED POWER!");
+    }
 
     private void setAnimation() {
         int startAnimation = state; // Remember what current animation is before checking is there a switch.
@@ -341,5 +350,7 @@ public class Player extends Entity {
         if (!isEntityOnFloor(hitbox, lvlData))
             inAir = true;
     }
+
+
 }
 

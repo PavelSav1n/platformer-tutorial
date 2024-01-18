@@ -38,6 +38,7 @@ public class GameObject {
     }
 
     public void reset() {
+        System.out.println("RESET!");
         animationTick = 0;
         animationIndex = 0;
         active = true;
@@ -87,5 +88,9 @@ public class GameObject {
 
     public int getAnimationIndex() {
         return animationIndex;
+    }
+
+    public void setDoAnimation(boolean doAnimation) {
+        this.doAnimation = doAnimation;
     }
 }

@@ -25,6 +25,9 @@ public class GameContainer extends GameObject {
             yDrawOffset = (int) (5 * Game.SCALE);
 
         }
+
+        hitbox.y += yDrawOffset + Game.SCALE * 2; // Some math going on to stick containers to the floor (tiles 32 size and containers 30)
+        hitbox.x += xDrawOffset / 2; // To center containers.
     }
 
     public void update() {
