@@ -4,6 +4,7 @@ import ps.entities.EnemyManager;
 import ps.entities.Player;
 import ps.levels.LevelManager;
 import ps.main.Game;
+import ps.objects.ObjectManager;
 import ps.ui.GameOverOverlay;
 import ps.ui.LevelCompletedOverlay;
 import ps.ui.PauseOverlay;
@@ -26,6 +27,7 @@ public class Playing extends State implements StateMethods {
     private PauseOverlay pauseOverlay;
     private GameOverOverlay gameOverOverlay;
     private LevelCompletedOverlay levelCompletedOverlay;
+    private ObjectManager objectManager;
 
     private boolean paused = false;
 
@@ -61,9 +63,6 @@ public class Playing extends State implements StateMethods {
         this.maxLvlOffsetX = maxLvlOffsetX;
     }
 
-    public EnemyManager getEnemyManager() {
-        return enemyManager;
-    }
 
     public void loadNextLevel() {
         resetAll();
@@ -88,6 +87,7 @@ public class Playing extends State implements StateMethods {
     private void initClasses() {
         levelManager = new LevelManager(game);
         enemyManager = new EnemyManager(this);
+        objectManager = new ObjectManager(this);
 
         player = new Player(250, 250, (int) (64 * Game.SCALE), (int) (40 * Game.SCALE), this);
         player.loadLvlData(levelManager.getCurrentLevel().getLevelData());
@@ -108,6 +108,7 @@ public class Playing extends State implements StateMethods {
             levelCompletedOverlay.update();
         } else if (!gameOver) {
             levelManager.update();
+            objectManager.update();
             enemyManager.update(levelManager.getCurrentLevel().getLevelData(), player); // To manage lvl data like solid blocks and cliffs inside Enemy class (updateMove() method)
             player.update();
             checkCloseToBorder();
@@ -137,6 +138,7 @@ public class Playing extends State implements StateMethods {
         levelManager.draw(graphics, xLvlOffset);
         player.render(graphics, xLvlOffset);
         enemyManager.draw(graphics, xLvlOffset);
+        objectManager.draw(graphics, xLvlOffset);
 
         if (paused) {
             graphics.setColor(new Color(0, 0, 0, 150)); // Semi transparent black.
@@ -266,5 +268,13 @@ public class Playing extends State implements StateMethods {
     public void setLevelCompleted(boolean levelCompleted) {
         this.levelCompleted = levelCompleted;
 
+    }
+
+    public EnemyManager getEnemyManager() {
+        return enemyManager;
+    }
+
+    public ObjectManager getObjectManager() {
+        return objectManager;
     }
 }
