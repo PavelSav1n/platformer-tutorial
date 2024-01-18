@@ -1,18 +1,11 @@
 package ps.utils;
 
-import ps.entities.Crabby;
-import ps.main.Game;
-
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-
-import static ps.utils.Constants.UI.EnemyConstants.CRABBY;
 
 public class LoadSave {
 

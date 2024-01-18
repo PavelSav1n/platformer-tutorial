@@ -16,7 +16,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
-import static ps.utils.Constants.UI.Environment.*;
+import static ps.utils.Constants.Environment.*;
 
 public class Playing extends State implements StateMethods {
 
@@ -238,21 +238,9 @@ public class Playing extends State implements StateMethods {
     public void keyReleased(KeyEvent keyEvent) {
         if (!gameOver)
             switch (keyEvent.getKeyCode()) {
-                case KeyEvent.VK_W:
-                    player.setUp(false);
-                    break;
-                case KeyEvent.VK_A:
-                    player.setLeft(false);
-                    break;
-                case KeyEvent.VK_S:
-                    player.setDown(false);
-                    break;
-                case KeyEvent.VK_D:
-                    player.setRight(false);
-                    break;
-                case KeyEvent.VK_SPACE:
-                    player.setJump(false);
-                    break;
+                case KeyEvent.VK_A -> player.setLeft(false);
+                case KeyEvent.VK_D -> player.setRight(false);
+                case KeyEvent.VK_SPACE -> player.setJump(false);
             }
 
     }

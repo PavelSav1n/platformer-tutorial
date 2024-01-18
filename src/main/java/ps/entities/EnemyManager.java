@@ -9,7 +9,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import static ps.utils.Constants.UI.EnemyConstants.*;
+import static ps.utils.Constants.EnemyConstants.*;
 
 // Like LevelManager this class will take care of enemy patrol, attack and other functions
 public class EnemyManager {
@@ -51,7 +51,7 @@ public class EnemyManager {
         for (Crabby crabby : crabbies) {
             if (crabby.isActive()) {
                 g.drawImage(
-                        crabbyArr[crabby.getEnemyState()][crabby.getAniIndex()],
+                        crabbyArr[crabby.getState()][crabby.getAniIndex()],
                         (int) crabby.getHitbox().x - xLvlOffset - CRABBY_DRAWOFFSET_X + crabby.flipX(),
                         (int) crabby.getHitbox().y - CRABBY_DRAWOFFSET_Y,
                         CRABBY_WIDTH * crabby.flipW(), CRABBY_HEIGHT, null);

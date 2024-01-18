@@ -6,23 +6,18 @@ import java.awt.geom.Rectangle2D;
 
 import static ps.utils.Constants.Directions.LEFT;
 import static ps.utils.Constants.Directions.RIGHT;
-import static ps.utils.Constants.UI.EnemyConstants.*;
+import static ps.utils.Constants.EnemyConstants.*;
+import static ps.utils.Constants.*;
 import static ps.utils.HelpMethods.*;
 
 public abstract class Enemy extends Entity {
 
-    protected int aniIndex, enemyState, enemyType;
-    protected int aniTick, aniSpeed = 25;
+    protected int enemyType;
     protected boolean firstUpdate = true; // First update when game starts.
-    protected boolean inAir = false;
-    protected float fallSpeed;
-    protected float gravity = 0.04f * Game.SCALE;
-    protected float walkSpeed = 0.2f * Game.SCALE;
+    protected float walkSpeed;
     protected int walkDir = LEFT;
     protected int tileY; // Y position of the tile where the enemy is (needed to check player visibility)
     protected float attackDistance = Game.TILES_SIZE;
-    protected int maxHealth; // Different enemies could have different health.
-    protected int currentHealth;
     protected boolean active = true;
     protected boolean attackChecked;
 
@@ -30,10 +25,9 @@ public abstract class Enemy extends Entity {
     public Enemy(float x, float y, int width, int height, int enemyType) {
         super(x, y, width, height);
         this.enemyType = enemyType;
-
-        initHitbox(x, y, width, height);
         maxHealth = getMaxHealth(enemyType);
         currentHealth = maxHealth;
+        walkSpeed = Game.SCALE * 0.35f;
     }
 
     protected void firstUpdateCheck(int[][] lvlData) {
@@ -44,12 +38,12 @@ public abstract class Enemy extends Entity {
     }
 
     protected void updateInAir(int[][] lvlData) {
-        if (canMoveHere(hitbox.x, hitbox.y + fallSpeed, hitbox.width, hitbox.height, lvlData)) {
-            hitbox.y += fallSpeed;
-            fallSpeed += gravity;
+        if (canMoveHere(hitbox.x, hitbox.y + airSpeed, hitbox.width, hitbox.height, lvlData)) {
+            hitbox.y += airSpeed;
+            airSpeed += GRAVITY;
         } else {
             inAir = false;
-            hitbox.y = getEntityYPosUnderRoofOrAboveFloor(hitbox, fallSpeed);
+            hitbox.y = getEntityYPosUnderRoofOrAboveFloor(hitbox, airSpeed);
             tileY = (int) hitbox.y / Game.TILES_SIZE; // when the enemy hits floor it's Y never change
         }
     }
@@ -107,9 +101,9 @@ public abstract class Enemy extends Entity {
     }
 
     protected void newState(int enemyState) {
-        this.enemyState = enemyState;
-        aniTick = 0;
-        aniIndex = 0;
+        this.state = enemyState;
+        animationTick = 0;
+        animationIndex = 0;
     }
 
     public void hurt(int amount) {
@@ -127,14 +121,14 @@ public abstract class Enemy extends Entity {
     }
 
     protected void updateAnimationTick() {
-        aniTick++;
-        if (aniTick >= aniSpeed) {
-            aniTick = 0;
-            aniIndex++;
-            if (aniIndex >= getSpriteAmount(enemyType, enemyState)) {
-                aniIndex = 0;
-                switch (enemyState) {
-                    case ATTACK, HIT -> enemyState = IDLE;
+        animationTick++;
+        if (animationTick >= ANI_SPEED) {
+            animationTick = 0;
+            animationIndex++;
+            if (animationIndex >= getSpriteAmount(enemyType, state)) {
+                animationIndex = 0;
+                switch (state) {
+                    case ATTACK, HIT -> state = IDLE;
                     case DEAD -> active = false;
                 }
             }
@@ -149,14 +143,6 @@ public abstract class Enemy extends Entity {
             walkDir = LEFT;
     }
 
-    public int getAniIndex() {
-        return aniIndex;
-    }
-
-    public int getEnemyState() {
-        return enemyState;
-    }
-
     public boolean isActive() {
         return active;
     }
@@ -168,7 +154,7 @@ public abstract class Enemy extends Entity {
         currentHealth = maxHealth;
         newState(IDLE);
         active = true;
-        fallSpeed = 0;
+        airSpeed = 0;
 
     }
 }

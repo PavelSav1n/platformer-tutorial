@@ -8,7 +8,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import static ps.utils.Constants.UI.EnemyConstants.CRABBY;
+import static ps.utils.Constants.EnemyConstants.CRABBY;
 
 public class HelpMethods {
 

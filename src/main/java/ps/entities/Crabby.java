@@ -5,20 +5,17 @@ import ps.main.Game;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
-import static ps.utils.Constants.Directions.LEFT;
 import static ps.utils.Constants.Directions.RIGHT;
-import static ps.utils.Constants.UI.EnemyConstants.*;
-import static ps.utils.HelpMethods.*;
+import static ps.utils.Constants.EnemyConstants.*;
 
 public class Crabby extends Enemy {
 
     //AttackBox
-    private Rectangle2D.Float attackBox;
     private int attackBoxOffsetX;
 
     public Crabby(float x, float y) { // all other constants are defined already
         super(x, y, CRABBY_WIDTH, CRABBY_HEIGHT, CRABBY);
-        initHitbox(x, y, (int) (22 * Game.SCALE), (int) (19 * Game.SCALE)); // 22 and 19 is measured crabby hitbox.
+        initHitbox(20,19); // 22 and 19 is measured crabby hitbox.
         initAttackBox();
     }
 
@@ -37,7 +34,7 @@ public class Crabby extends Enemy {
         if (inAir)
             updateInAir(lvlData);
         else {
-            switch (enemyState) {
+            switch (state) {
                 case IDLE -> newState(RUNNING); // enemyState becomes equal passed enum and aniTick & aniIndex become 0;
                 case RUNNING -> {
                     if (canSeePlayer(lvlData, player)) {
@@ -48,8 +45,8 @@ public class Crabby extends Enemy {
                     move(lvlData);
                 }
                 case ATTACK -> {
-                    if (aniIndex == 0) attackChecked = false; // if animation is passed, we can check again.
-                    if (aniIndex == 3 && !attackChecked) // attackChecked for only one hit checking per ATTACK
+                    if (animationIndex == 0) attackChecked = false; // if animation is passed, we can check again.
+                    if (animationIndex == 3 && !attackChecked) // attackChecked for only one hit checking per ATTACK
                         checkEnemyHit(attackBox, player);
                 }
                 case HIT -> {
@@ -57,12 +54,6 @@ public class Crabby extends Enemy {
             }
         }
 
-    }
-
-
-    public void drawAttackBox(Graphics g, int xLvlOffset) {
-        g.setColor(Color.red);
-        g.drawRect((int) (attackBox.x - xLvlOffset), (int) attackBox.y, (int) attackBox.width, (int) attackBox.height);
     }
 
     // We're flipping X because we need to keep sprite centered, so X from topleft goes to topright on the distance of width of sprite.
