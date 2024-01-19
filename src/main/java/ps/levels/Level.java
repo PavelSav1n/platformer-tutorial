@@ -4,6 +4,7 @@ import ps.entities.Crabby;
 import ps.main.Game;
 import ps.objects.GameContainer;
 import ps.objects.Potion;
+import ps.objects.Spike;
 import ps.utils.HelpMethods;
 
 import java.awt.*;
@@ -19,6 +20,7 @@ public class Level {
     private ArrayList<Crabby> crabs; // Crabs are stored in Green RGB pixels.
     private ArrayList<Potion> potions; // The level stores potions and containers DATA in Blue RGB pixels of level.
     private ArrayList<GameContainer> containers;
+    private ArrayList<Spike> spikes;
     // LVLs can change in width, so we need to calculate xLvlOffset
     private int lvlTilesWide; // number of current level tiles in width
     private int maxTilesOffset; // number of tiles of current level offset (off the screen) in width
@@ -31,8 +33,13 @@ public class Level {
         createEnemies();
         createPotions();
         createContainers();
+        createSpikes();
         calculateOffsets();
         calculatePlayerSpawn();
+    }
+
+    private void createSpikes() {
+        spikes = HelpMethods.GetSpikes(img);
     }
 
     private void createPotions() { // Fill the list with potions with the specified coordinates according to passing img.
@@ -87,5 +94,9 @@ public class Level {
 
     public ArrayList<GameContainer> getContainers() {
         return containers;
+    }
+
+    public ArrayList<Spike> getSpikes() {
+        return spikes;
     }
 }

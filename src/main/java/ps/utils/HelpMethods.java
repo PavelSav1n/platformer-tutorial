@@ -4,6 +4,7 @@ import ps.entities.Crabby;
 import ps.main.Game;
 import ps.objects.GameContainer;
 import ps.objects.Potion;
+import ps.objects.Spike;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -195,6 +196,20 @@ public class HelpMethods {
             }
         }
         return new Point(1 * Game.TILES_SIZE, 1 * Game.TILES_SIZE);
+    }
+
+    public static ArrayList<Spike> GetSpikes(BufferedImage img) {
+        ArrayList<Spike> list = new ArrayList<>();
+
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+                int value = color.getBlue();
+                if (value == SPIKE)
+                    list.add(new Spike(j * Game.TILES_SIZE, i * Game.TILES_SIZE, SPIKE));
+            }
+        }
+        return list;
     }
 }
 

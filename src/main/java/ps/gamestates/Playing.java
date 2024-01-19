@@ -178,6 +178,22 @@ public class Playing extends State implements StateMethods {
         enemyManager.checkEnemyHit(attackBox);
     }
 
+    public void checkPotionTouched(Rectangle2D.Float hitbox) {
+        objectManager.checkObjectTouched(hitbox);
+    }
+
+    public void checkObjectHit(Rectangle2D.Float attackBox) {
+        objectManager.checkObjectHit(attackBox);
+    }
+
+    public LevelManager getLevelManager() {
+        return levelManager;
+    }
+
+    public void checkSpikesTouched(Player player) {
+        objectManager.checkSpikesTouched(player);
+    }
+
     @Override
     public void mouseClicked(MouseEvent mouseEvent) {
 //        if (!gameOver)
@@ -283,11 +299,5 @@ public class Playing extends State implements StateMethods {
         return objectManager;
     }
 
-    public void checkPotionTouched(Rectangle2D.Float hitbox) {
-        objectManager.checkObjectTouched(hitbox);
-    }
 
-    public void checkObjectHit(Rectangle2D.Float attackBox) {
-        objectManager.checkObjectHit(attackBox);
-    }
 }

@@ -38,7 +38,7 @@ public class GameObject {
     }
 
     public void reset() {
-        System.out.println("RESET!");
+        System.out.println(objType + "RESET!");
         animationTick = 0;
         animationIndex = 0;
         active = true;

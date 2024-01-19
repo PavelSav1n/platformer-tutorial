@@ -1,5 +1,6 @@
 package ps.objects;
 
+import ps.entities.Player;
 import ps.gamestates.Playing;
 import ps.levels.Level;
 import ps.utils.LoadSave;
@@ -15,12 +16,21 @@ public class ObjectManager {
 
     private Playing playing;
     private BufferedImage[][] potionImgs, containerImgs;
+    private BufferedImage spikeImg;
     private ArrayList<Potion> potions;
     private ArrayList<GameContainer> containers;
+    private ArrayList<Spike> spikes;
 
     public ObjectManager(Playing playing) {
         this.playing = playing;
         loadImgs();
+    }
+
+    public void checkSpikesTouched(Player p) {
+        for (Spike spike : spikes) {
+            if (spike.getHitbox().intersects(p.getHitbox()))
+                p.kill();
+        }
     }
 
     // Whether player hitbox interact with container hitbox.
@@ -46,7 +56,7 @@ public class ObjectManager {
     // Whether player attackBox interacts with container hitbox.
     public void checkObjectHit(Rectangle2D.Float attackbox) {
         for (GameContainer container : containers) {
-            if (container.isActive()) {
+            if (container.isActive() && !container.doAnimation) {
                 if (container.getHitbox().intersects(attackbox)) {
                     container.setDoAnimation(true);
                     int type = 0;
@@ -62,8 +72,13 @@ public class ObjectManager {
     }
 
     public void loadObjects(Level newLevel) {
-        potions = newLevel.getPotions();
-        containers = newLevel.getContainers();
+//        potions = newLevel.getPotions();
+//        containers = newLevel.getContainers();
+
+        potions = new ArrayList<>(newLevel.getPotions()); // Creating a copies of initial ArrayList of level objects.
+        containers = new ArrayList<>(newLevel.getContainers());
+        spikes = newLevel.getSpikes();
+
     }
 
     private void loadImgs() {
@@ -84,6 +99,8 @@ public class ObjectManager {
                 containerImgs[i][j] = containerSprite.getSubimage(40 * j, 30 * i, 40, 30);
             }
         }
+
+        spikeImg = LoadSave.GetSpriteAtlas(LoadSave.TRAP_ATLAS);
     }
 
     public void update() {
@@ -100,6 +117,13 @@ public class ObjectManager {
     public void draw(Graphics g, int xLvlOffset) {
         drawPotions(g, xLvlOffset);
         drawContainers(g, xLvlOffset);
+        drawTraps(g, xLvlOffset);
+    }
+
+    private void drawTraps(Graphics g, int xLvlOffset) {
+        for (Spike spike : spikes) {
+            g.drawImage(spikeImg, (int) (spike.getHitbox().x - xLvlOffset), (int) (spike.getHitbox().y - spike.getyDrawOffset()), SPIKE_WIDTH, SPIKE_HEIGHT, null);
+        }
     }
 
     private void drawContainers(Graphics g, int xLvlOffset) {
@@ -135,6 +159,9 @@ public class ObjectManager {
     }
 
     public void resetAllObjects() {
+        loadObjects(playing.getLevelManager().getCurrentLevel()); // Creating new copies of initial obj arrays.
+
+        // Reseting all initial containers and potions.
         for (Potion potion : potions) {
             potion.reset();
         }
@@ -142,6 +169,8 @@ public class ObjectManager {
             container.reset();
         }
     }
+
+
 }
 
 
