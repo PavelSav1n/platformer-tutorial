@@ -2,6 +2,7 @@ package ps.utils;
 
 import ps.entities.Crabby;
 import ps.main.Game;
+import ps.objects.Cannon;
 import ps.objects.GameContainer;
 import ps.objects.Potion;
 import ps.objects.Spike;
@@ -96,19 +97,40 @@ public class HelpMethods {
         return false;
     }
 
-    public static boolean isAllTilesWalkable(int xStart, int xEnd, int y, int[][] lvlData) {
-        for (int i = 0; i < xEnd - xStart; i++) {
+    public static boolean canCannonSeePlayer(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int tileY) {
+        int firstXTile = (int) (firstHitbox.x / Game.TILES_SIZE);
+        int secondXTile = (int) (secondHitbox.x / Game.TILES_SIZE);
+
+        // We need to check only those tile which in between firstXTile and secondXTile
+        if (firstXTile > secondXTile)  // Going through tile from left to right, so we need this check
+            return isAllTilesClear(secondXTile, firstXTile, tileY, lvlData);
+        else
+            return isAllTilesClear(firstXTile, secondXTile, tileY, lvlData);
+
+    }
+
+    // If all tiles from 1 point to 2 point is not solid
+    public static boolean isAllTilesClear(int xStart, int xEnd, int y, int[][] lvlData) {
+        for (int i = 0; i < xEnd - xStart; i++)
             if (isTileSolid(xStart + i, y, lvlData))
                 return false;
-            if (!isTileSolid(xStart + i, y + 1, lvlData))
-                return false;
+        return true;
+
+    }
+
+    public static boolean isAllTilesWalkable(int xStart, int xEnd, int y, int[][] lvlData) {
+        for (int i = 0; i < xEnd - xStart; i++) {
+            if (isAllTilesClear(xStart, xEnd, y, lvlData))
+                if (!isTileSolid(xStart + i, y + 1, lvlData)) // checking tiles beneath clear tiles
+                    return false;
         }
         return true;
 
     }
 
     // Checking whether there is an obstacle in sight between two objects.
-    public static boolean isSightClear(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int tileY) {
+    public static boolean isSightClear(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.
+            Float secondHitbox, int tileY) {
         int firstXTile = (int) (firstHitbox.x / Game.TILES_SIZE);
         int secondXTile = (int) (secondHitbox.x / Game.TILES_SIZE);
 
@@ -207,6 +229,21 @@ public class HelpMethods {
                 int value = color.getBlue();
                 if (value == SPIKE)
                     list.add(new Spike(j * Game.TILES_SIZE, i * Game.TILES_SIZE, SPIKE));
+            }
+        }
+        return list;
+    }
+
+    public static ArrayList<Cannon> GetCannons(BufferedImage img) {
+        ArrayList<Cannon> list = new ArrayList<>();
+
+        for (int i = 0; i < img.getHeight(); i++) {
+            for (int j = 0; j < img.getWidth(); j++) {
+                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
+                int value = color.getBlue();
+                if (value == CANNON_LEFT || value == CANNON_RIGHT) {
+                    list.add(new Cannon(j * Game.TILES_SIZE, i * Game.TILES_SIZE, value));
+                }
             }
         }
         return list;

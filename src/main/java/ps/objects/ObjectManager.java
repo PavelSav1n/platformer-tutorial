@@ -3,6 +3,7 @@ package ps.objects;
 import ps.entities.Player;
 import ps.gamestates.Playing;
 import ps.levels.Level;
+import ps.main.Game;
 import ps.utils.LoadSave;
 
 import java.awt.*;
@@ -11,15 +12,27 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import static ps.utils.Constants.ObjectConstants.*;
+import static ps.utils.HelpMethods.canCannonSeePlayer;
 
+// ObjectManager class provides mechanics such as follows:
+// - Creating a copies of potion & container objs, and initial objects of spikes and cannons
+// - Creating subimages from objs ATLAS and filling objects arrays with according samples.
+// - Intersecting a Player hitbox with spikes hitbox, potion hitbox.
+// - Intersecting a player attackBox with container hitbox.
+// - Applying potion effects to a Player.
+// - Drawing objects (potions, containers, spikes, cannons).
+// - Updating active objects.
+// - Reseting all objects to default state.
 public class ObjectManager {
 
     private Playing playing;
     private BufferedImage[][] potionImgs, containerImgs;
+    private BufferedImage[] cannonImg;
     private BufferedImage spikeImg;
     private ArrayList<Potion> potions;
     private ArrayList<GameContainer> containers;
     private ArrayList<Spike> spikes;
+    private ArrayList<Cannon> cannons;
 
     public ObjectManager(Playing playing) {
         this.playing = playing;
@@ -78,6 +91,7 @@ public class ObjectManager {
         potions = new ArrayList<>(newLevel.getPotions()); // Creating a copies of initial ArrayList of level objects.
         containers = new ArrayList<>(newLevel.getContainers());
         spikes = newLevel.getSpikes();
+        cannons = newLevel.getCannons();
 
     }
 
@@ -100,10 +114,16 @@ public class ObjectManager {
             }
         }
 
-        spikeImg = LoadSave.GetSpriteAtlas(LoadSave.TRAP_ATLAS);
+        spikeImg = LoadSave.GetSpriteAtlas(LoadSave.TRAP_ATLAS); // Just an image, not an array.
+
+        cannonImg = new BufferedImage[7];
+        BufferedImage temp = LoadSave.GetSpriteAtlas(LoadSave.CANNON_ATLAS);
+        for (int i = 0; i < cannonImg.length; i++) {
+            cannonImg[i] = temp.getSubimage(i * CANNON_WIDTH_DEFAULT, 0, CANNON_WIDTH_DEFAULT, CANNON_HEIGHT_DEFAULT);
+        }
     }
 
-    public void update() {
+    public void update(int[][] lvlData, Player player) {
         for (Potion potion : potions) {
             if (potion.isActive())
                 potion.update();
@@ -112,12 +132,70 @@ public class ObjectManager {
             if (container.isActive())
                 container.update();
         }
+
+        updateCannons(lvlData, player);
+    }
+    /* if the cannon is not animating
+     * tileY is same
+     * ifPlayer is in range
+     * is player in front of cannon
+     * lin of sight
+     * shoot the cannon
+     */
+    private void updateCannons(int[][] lvlData, Player player) {
+        for (Cannon cannon : cannons) {
+//            if (!cannon.doAnimation) {
+                if (cannon.getTileY() == player.getTileY()) {
+                    if (isPlayerInRange(cannon, player)) {
+                        if (isPlayerInfrontOfCannon(cannon, player)) {
+                            if (canCannonSeePlayer(lvlData, player.getHitbox(), cannon.getHitbox(), cannon.getTileY())) {
+                                shootCannon(cannon);
+                                System.out.println("shoot");
+                            }
+                        }
+                    }
+                }
+                cannon.update();
+            }
+//        }
+    }
+
+    private void shootCannon(Cannon cannon) {
+        cannon.setDoAnimation(true);
+    }
+
+    private boolean isPlayerInfrontOfCannon(Cannon cannon, Player player) {
+        if (cannon.getObjType() == CANNON_LEFT) {
+            if (player.getHitbox().x < cannon.getHitbox().x)
+                return true;
+        } else if (player.getHitbox().x > cannon.getHitbox().x) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isPlayerInRange(Cannon cannon, Player player) {
+        int absValue = (int) Math.abs(player.getHitbox().x - cannon.getHitbox().x); // Evaluating distance between player and enemy (module of distance is absolute (abs))
+        return absValue <= Game.TILES_SIZE * 5; // Eye of sight is 5 times larger than TILES_SIZE
     }
 
     public void draw(Graphics g, int xLvlOffset) {
         drawPotions(g, xLvlOffset);
         drawContainers(g, xLvlOffset);
         drawTraps(g, xLvlOffset);
+        drawCannons(g, xLvlOffset);
+    }
+
+    private void drawCannons(Graphics g, int xLvlOffset) {
+        for (Cannon cannon : cannons) {
+            int x = (int) (cannon.getHitbox().x - xLvlOffset);
+            int width = CANNON_WIDTH;
+            if (cannon.getObjType() == CANNON_RIGHT) {
+                x += width;
+                width *= -1;
+            }
+            g.drawImage(cannonImg[cannon.getAnimationIndex()], x, (int) cannon.getHitbox().y, width, CANNON_HEIGHT, null);
+        }
     }
 
     private void drawTraps(Graphics g, int xLvlOffset) {
@@ -167,6 +245,10 @@ public class ObjectManager {
         }
         for (GameContainer container : containers) {
             container.reset();
+        }
+
+        for (Cannon cannon : cannons) {
+            cannon.reset();
         }
     }
 

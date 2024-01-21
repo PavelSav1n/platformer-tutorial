@@ -2,6 +2,7 @@ package ps.levels;
 
 import ps.entities.Crabby;
 import ps.main.Game;
+import ps.objects.Cannon;
 import ps.objects.GameContainer;
 import ps.objects.Potion;
 import ps.objects.Spike;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 
 import static ps.utils.HelpMethods.*;
 
+// Level class takes an image and creates all objects lists we need, like Crabs, Potions, Containers, Spikes, Cannons.
+// It is also determines Player spawn point and offsets for camera to move.
 public class Level {
 
     private BufferedImage img;
@@ -21,6 +24,7 @@ public class Level {
     private ArrayList<Potion> potions; // The level stores potions and containers DATA in Blue RGB pixels of level.
     private ArrayList<GameContainer> containers;
     private ArrayList<Spike> spikes;
+    private ArrayList<Cannon> cannons;
     // LVLs can change in width, so we need to calculate xLvlOffset
     private int lvlTilesWide; // number of current level tiles in width
     private int maxTilesOffset; // number of tiles of current level offset (off the screen) in width
@@ -34,8 +38,13 @@ public class Level {
         createPotions();
         createContainers();
         createSpikes();
+        createCannons();
         calculateOffsets();
         calculatePlayerSpawn();
+    }
+
+    private void createCannons() {
+        cannons = HelpMethods.GetCannons(img);
     }
 
     private void createSpikes() {
@@ -98,5 +107,9 @@ public class Level {
 
     public ArrayList<Spike> getSpikes() {
         return spikes;
+    }
+
+    public ArrayList<Cannon> getCannons() {
+        return cannons;
     }
 }

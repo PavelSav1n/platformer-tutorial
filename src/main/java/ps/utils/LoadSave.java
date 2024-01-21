@@ -29,6 +29,7 @@ public class LoadSave {
     public static final String POTION_ATLAS = "potions_sprites.png";
     public static final String CONTAINER_ATLAS = "objects_sprites.png";
     public static final String TRAP_ATLAS = "trap_atlas.png";
+    public static final String CANNON_ATLAS = "CANNON_atlas.png";
 
     public static BufferedImage GetSpriteAtlas(String fileName) {
         BufferedImage img = null;
@@ -85,39 +86,4 @@ public class LoadSave {
         }
         return imgs;
     }
-
-//    // Fill the list with crabs with the specified coordinates according to lvl atlas.
-//    public static ArrayList<Crabby> getCrabs() {
-//        BufferedImage img = GetSpriteAtlas(LEVEL_ONE_DATA);
-//        ArrayList<Crabby> list = new ArrayList<>();
-//
-//        for (int i = 0; i < img.getHeight(); i++) {
-//            for (int j = 0; j < img.getWidth(); j++) {
-//                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-//                int value = color.getGreen();
-//                if (value == CRABBY)
-//                    list.add(new Crabby(j * Game.TILES_SIZE, i * Game.TILES_SIZE)); // filling list with crabbies.
-//
-//            }
-//        }
-//        return list;
-//    }
-
-//    // Returns int 2dArray which is filled with red color int (0-255). It will be mapped on our level.
-//    public static int[][] GetLevelData() {
-//        BufferedImage img = GetSpriteAtlas(LEVEL_ONE_DATA);
-////        int[][] lvlData = new int[Game.TILES_IN_HEIGHT][Game.TILES_IN_WIDTH]; // static lvl
-//        int[][] lvlData = new int[img.getHeight()][img.getWidth()]; // will be lvls with different dimensions
-//        // Going through the image pixel array.
-//        for (int i = 0; i < img.getHeight(); i++) {
-//            for (int j = 0; j < img.getWidth(); j++) {
-//                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-//                int value = color.getRed();
-//                if (value >= 48)
-//                    value = 0; // If there's a mistake in initial image, we can easily overcome the 48 red int value of our sprite array. So here is protection.
-//                lvlData[i][j] = value; // saving red data to 2dArray
-//            }
-//        }
-//        return lvlData;
-//    }
 }
