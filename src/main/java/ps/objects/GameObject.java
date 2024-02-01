@@ -92,6 +92,10 @@ public class GameObject {
         return animationIndex;
     }
 
+    public int getAnimationTick() {
+        return animationTick;
+    }
+
     public void setDoAnimation(boolean doAnimation) {
         this.doAnimation = doAnimation;
     }

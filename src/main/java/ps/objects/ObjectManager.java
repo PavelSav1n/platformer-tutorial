@@ -12,11 +12,14 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import static ps.utils.Constants.ObjectConstants.*;
+import static ps.utils.Constants.Projectiles.*;
 import static ps.utils.HelpMethods.canCannonSeePlayer;
+import static ps.utils.HelpMethods.IsProjectileHittingLevel;
 
 // ObjectManager class provides mechanics such as follows:
 // - Creating a copies of potion & container objs, and initial objects of spikes and cannons
 // - Creating subimages from objs ATLAS and filling objects arrays with according samples.
+// - Creating a projectiles
 // - Intersecting a Player hitbox with spikes hitbox, potion hitbox.
 // - Intersecting a player attackBox with container hitbox.
 // - Applying potion effects to a Player.
@@ -28,11 +31,12 @@ public class ObjectManager {
     private Playing playing;
     private BufferedImage[][] potionImgs, containerImgs;
     private BufferedImage[] cannonImg;
-    private BufferedImage spikeImg;
+    private BufferedImage spikeImg, cannonBallImg;
     private ArrayList<Potion> potions;
     private ArrayList<GameContainer> containers;
     private ArrayList<Spike> spikes;
     private ArrayList<Cannon> cannons;
+    private ArrayList<Projectile> projectiles = new ArrayList<>(); // each time a cannon shoots, we'll be adding balls to this array list.
 
     public ObjectManager(Playing playing) {
         this.playing = playing;
@@ -92,6 +96,7 @@ public class ObjectManager {
         containers = new ArrayList<>(newLevel.getContainers());
         spikes = newLevel.getSpikes();
         cannons = newLevel.getCannons();
+        projectiles.clear(); // Clearing array list, when we start level, we don't need balls from previous game.
 
     }
 
@@ -121,6 +126,8 @@ public class ObjectManager {
         for (int i = 0; i < cannonImg.length; i++) {
             cannonImg[i] = temp.getSubimage(i * CANNON_WIDTH_DEFAULT, 0, CANNON_WIDTH_DEFAULT, CANNON_HEIGHT_DEFAULT);
         }
+
+        cannonBallImg = LoadSave.GetSpriteAtlas(LoadSave.CANNON_BALL);
     }
 
     public void update(int[][] lvlData, Player player) {
@@ -134,7 +141,25 @@ public class ObjectManager {
         }
 
         updateCannons(lvlData, player);
+        updateProjectiles(lvlData, player);
     }
+
+    private void updateProjectiles(int[][] lvlData, Player player) {
+        for (Projectile projectile : projectiles) {
+            if (projectile.isActive()) {
+                projectile.updatePos();
+                if(projectile.getHitbox().intersects(player.getHitbox())){
+                    player.changeHealth(-25);
+                    projectile.setActive(false);
+                } else if (IsProjectileHittingLevel(projectile, lvlData)) {
+                    projectile.setActive(false);
+                }
+            }
+        }
+    }
+
+
+
     /* if the cannon is not animating
      * tileY is same
      * ifPlayer is in range
@@ -144,24 +169,29 @@ public class ObjectManager {
      */
     private void updateCannons(int[][] lvlData, Player player) {
         for (Cannon cannon : cannons) {
-//            if (!cannon.doAnimation) {
+            if (!cannon.doAnimation)
                 if (cannon.getTileY() == player.getTileY()) {
                     if (isPlayerInRange(cannon, player)) {
                         if (isPlayerInfrontOfCannon(cannon, player)) {
                             if (canCannonSeePlayer(lvlData, player.getHitbox(), cannon.getHitbox(), cannon.getTileY())) {
-                                shootCannon(cannon);
-                                System.out.println("shoot");
+                                cannon.setDoAnimation(true); // we must shoot only on particular animation, not at the start.
                             }
                         }
                     }
                 }
-                cannon.update();
-            }
+            cannon.update();
+            if (cannon.getAnimationIndex() == 4 && cannon.getAnimationTick() == 0) // we shoot only if animation is in 4th position and only if cannon is not shooting currently.
+                shootCannon(cannon);
+        }
 //        }
     }
 
     private void shootCannon(Cannon cannon) {
         cannon.setDoAnimation(true);
+        int dir = 1;
+        if (cannon.getObjType() == CANNON_LEFT)
+            dir = -1;
+        projectiles.add(new Projectile((int) cannon.getHitbox().x, (int) cannon.getHitbox().y, dir));
     }
 
     private boolean isPlayerInfrontOfCannon(Cannon cannon, Player player) {
@@ -184,6 +214,14 @@ public class ObjectManager {
         drawContainers(g, xLvlOffset);
         drawTraps(g, xLvlOffset);
         drawCannons(g, xLvlOffset);
+        drawProjectiles(g, xLvlOffset);
+    }
+
+    private void drawProjectiles(Graphics g, int xLvlOffset) {
+        for (Projectile projectile : projectiles) {
+            if (projectile.isActive())
+                g.drawImage(cannonBallImg, (int) (projectile.getHitbox().x - xLvlOffset), (int) projectile.getHitbox().y, CANNON_BALL_WIDTH, CANNON_BALL_HEIGHT, null);
+        }
     }
 
     private void drawCannons(Graphics g, int xLvlOffset) {

@@ -2,10 +2,7 @@ package ps.utils;
 
 import ps.entities.Crabby;
 import ps.main.Game;
-import ps.objects.Cannon;
-import ps.objects.GameContainer;
-import ps.objects.Potion;
-import ps.objects.Spike;
+import ps.objects.*;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -87,6 +84,10 @@ public class HelpMethods {
 
         return isTileSolid((int) xIndex, (int) yIndex, lvlData);
 
+    }
+
+    public static boolean IsProjectileHittingLevel(Projectile projectile, int[][] lvlData) {
+        return isSolid(projectile.getHitbox().x + projectile.getHitbox().width / 2, projectile.getHitbox().y + projectile.getHitbox().height / 2, lvlData); // need to add some offsets;
     }
 
     public static boolean isTileSolid(int xTile, int yTile, int[][] lvlData) {
