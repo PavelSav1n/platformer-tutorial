@@ -81,9 +81,18 @@ public class Player extends Entity {
     public void update() {
         updateHealthBar(); // updating healthbar and then checking weather game is over.
 
+        // Die mechanics
         if (currentHealth <= 0) {
-            playing.setGameOver(true);
-            return;
+            if (state != DEAD) {
+                state = DEAD;
+                animationTick = 0;
+                animationIndex = 0;
+                playing.setPlayerDying(true); // stopping everything but player animation of death
+            } else if (animationIndex == getSpriteAmount(DEAD) - 1 && animationTick >= ANI_SPEED - 1) { // -1 because index starts with 0.
+                playing.setGameOver(true);
+            } else
+                updateAnimationTick();
+            return; // this needed to not go through the rest of the code below
         }
 
         updateAttackBox();

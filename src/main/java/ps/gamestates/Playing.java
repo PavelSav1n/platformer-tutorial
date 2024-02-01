@@ -42,6 +42,7 @@ public class Playing extends State implements StateMethods {
 
     private boolean gameOver;
     private boolean levelCompleted;
+    private boolean playerDying = false;
 
 
     public Playing(Game game) {
@@ -108,7 +109,11 @@ public class Playing extends State implements StateMethods {
             pauseOverlay.update();
         } else if (levelCompleted) {
             levelCompletedOverlay.update();
-        } else if (!gameOver) {
+        } else if (gameOver) {
+            gameOverOverlay.update();
+        } else if (playerDying) {
+            player.update();
+        } else {
             levelManager.update();
             objectManager.update(levelManager.getCurrentLevel().getLevelData(), player);
             enemyManager.update(levelManager.getCurrentLevel().getLevelData(), player); // To manage lvl data like solid blocks and cliffs inside Enemy class (updateMove() method)
@@ -169,6 +174,7 @@ public class Playing extends State implements StateMethods {
         gameOver = false;
         paused = false;
         levelCompleted = false;
+        playerDying = false;
         player.resetAll();
         enemyManager.resetAllEnemies();
         objectManager.resetAllObjects();
@@ -213,7 +219,9 @@ public class Playing extends State implements StateMethods {
             else if (levelCompleted) {
                 levelCompletedOverlay.mousePressed(mouseEvent);
             }
-        }
+        } else
+            gameOverOverlay.mousePressed(mouseEvent);
+
     }
 
     public void mouseDragged(MouseEvent mouseEvent) {
@@ -230,7 +238,8 @@ public class Playing extends State implements StateMethods {
             else if (levelCompleted) {
                 levelCompletedOverlay.mouseReleased(mouseEvent);
             }
-        }
+        }else
+            gameOverOverlay.mouseReleased(mouseEvent);
     }
 
     @Override
@@ -241,7 +250,8 @@ public class Playing extends State implements StateMethods {
             else if (levelCompleted) {
                 levelCompletedOverlay.mouseMoved(mouseEvent);
             }
-        }
+        }else
+            gameOverOverlay.mouseMoved(mouseEvent);
     }
 
     @Override
@@ -300,4 +310,7 @@ public class Playing extends State implements StateMethods {
     }
 
 
+    public void setPlayerDying(boolean playerDying) {
+        this.playerDying = playerDying;
+    }
 }
