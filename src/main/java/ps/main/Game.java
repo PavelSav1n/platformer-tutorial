@@ -1,8 +1,10 @@
 package ps.main;
 
+import ps.gamestates.GameOptions;
 import ps.gamestates.Gamestate;
 import ps.gamestates.Menu;
 import ps.gamestates.Playing;
+import ps.ui.AudioOptions;
 import ps.utils.LoadSave;
 
 import java.awt.*;
@@ -24,7 +26,8 @@ public class Game implements Runnable {
 
     private Playing playing;
     private Menu menu;
-
+    private GameOptions gameOptions;
+    private AudioOptions audioOptions;
 
     // Scaling ang dimensions:
     public final static int TILES_DEFAULT_SIZE = 32;
@@ -48,8 +51,10 @@ public class Game implements Runnable {
     }
 
     private void initClasses() {
+        audioOptions = new AudioOptions();
         menu = new Menu(this);
         playing = new Playing(this);
+        gameOptions = new GameOptions(this);
     }
 
     private void startGameLoop() {
@@ -61,7 +66,7 @@ public class Game implements Runnable {
         switch (Gamestate.state) {
             case PLAYING -> playing.update();
             case MENU -> menu.update();
-            case OPTIONS -> System.exit(0);
+            case OPTIONS -> gameOptions.update();
             case QUIT -> System.exit(0);
 
 
@@ -73,7 +78,7 @@ public class Game implements Runnable {
         switch (Gamestate.state) {
             case PLAYING -> playing.draw(graphics);
             case MENU -> menu.draw(graphics);
-            case OPTIONS -> System.exit(0);
+            case OPTIONS -> gameOptions.draw(graphics);
             case QUIT -> System.exit(0);
 
         }
@@ -137,4 +142,11 @@ public class Game implements Runnable {
         return menu;
     }
 
+    public AudioOptions getAudioOptions() {
+        return audioOptions;
+    }
+
+    public GameOptions getGameOptions() {
+        return gameOptions;
+    }
 }
