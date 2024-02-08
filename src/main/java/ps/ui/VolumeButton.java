@@ -13,7 +13,8 @@ public class VolumeButton extends PauseButton {
     private BufferedImage slider;
     private int index = 0;
     private boolean mouseOver, mousePressed;
-    private int buttonX, minX, maxX; // X of actual button of the slider, minX -- minimum X for the slider button, maxX -- maximum X for the slider button
+    private int buttonX, minX, maxX; // buttonX is X of actual button of the slider, minX -- minimum X for the slider button, maxX -- maximum X for the slider button
+    private float floatValue = 0f;
 
 
     public VolumeButton(int x, int y, int width, int height) {
@@ -48,6 +49,7 @@ public class VolumeButton extends PauseButton {
         g.drawImage(imgs[index], buttonX - VOLUME_WIDTH / 2, y, VOLUME_WIDTH, height, null);
     }
 
+    // Slider volume control method.
     public void changeX(int x) {
         if (x < minX)
             buttonX = minX;
@@ -55,8 +57,15 @@ public class VolumeButton extends PauseButton {
             buttonX = maxX;
         else
             buttonX = x;
-
+        updateFloatValue();
         bounds.x = buttonX - VOLUME_WIDTH / 2; // to drag in the middle of button (half a size)
+    }
+
+    // Updating floatValue for sound controls (between 0f and 1f)
+    private void updateFloatValue() {
+        float range = maxX - minX; // We're getting how far the slider can move.
+        float value = buttonX - minX; // The current value of slider button in float numbers.
+        floatValue = value / range; // Float value between 0f and 1f for sound controls.
     }
 
     public void resetBools() {
@@ -78,5 +87,9 @@ public class VolumeButton extends PauseButton {
 
     public void setMousePressed(boolean mousePressed) {
         this.mousePressed = mousePressed;
+    }
+
+    public float getFloatValue() {
+        return floatValue;
     }
 }

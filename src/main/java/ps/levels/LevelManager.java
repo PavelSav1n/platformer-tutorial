@@ -78,4 +78,9 @@ public class LevelManager {
         game.getPlaying().setMaxLvlOffsetX(newLevel.getLvlOffsetX());
         game.getPlaying().getObjectManager().loadObjects(newLevel);
     }
+
+    // For State class to choose what song to play.
+    public int getLvlIndex() {
+        return lvlIndex;
+    }
 }

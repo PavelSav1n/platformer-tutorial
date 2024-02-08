@@ -90,7 +90,7 @@ public class PauseOverlay {
     public void mouseReleased(MouseEvent mouseEvent) {
         if (isIn(mouseEvent, menuB)) {
             if (menuB.isMousePressed()) {
-                Gamestate.state = Gamestate.MENU; // going to menu
+                playing.setGameState(Gamestate.MENU); // going to menu and playing menu song.
                 playing.unpauseGame();
             }
         } else if (isIn(mouseEvent, replayB)) {

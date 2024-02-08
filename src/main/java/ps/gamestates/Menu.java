@@ -74,11 +74,13 @@ public class Menu extends State implements StateMethods {
         for (MenuButton mb : buttons) {
             if (isIn(mouseEvent, mb)) { // Check are we in, when button is released.
                 if (mb.isMousePressed()) // If the mouse was pressed before.
-                    mb.applyGamestate();
+                    mb.applyGamestate(); // Not a good way to change Gamestate. Need to find the way to use public void setGameState(Gamestate state) from superclass.
+                if (mb.getState() == Gamestate.PLAYING)
+                    game.getAudioPlayer().setLevelSong(game.getPlaying().getLevelManager().getLvlIndex());
                 break;
             }
         }
-        resetButtons(); // reseting all buttons (mouseOver & mousePressed)
+        resetButtons(); // resetting all buttons (mouseOver & mousePressed)
     }
 
     private void resetButtons() {

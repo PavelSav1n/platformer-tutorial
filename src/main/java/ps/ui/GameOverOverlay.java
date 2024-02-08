@@ -87,13 +87,14 @@ public class GameOverOverlay {
     public void mouseReleased(MouseEvent e) {
         if (isIn(menu, e)) {
             if (menu.isMousePressed()) {
-                System.out.println("MENU!");
+                System.out.println("MENU from Game over!");
                 playing.resetAll();
-                Gamestate.state = Gamestate.MENU;
+//                Gamestate.state = Gamestate.MENU;
+                playing.setGameState(Gamestate.MENU);
             }
         } else if (isIn(play, e)) {
             if (play.isMousePressed()) {
-                System.out.println("REPLAY!");
+                System.out.println("REPLAY! from Game over");
                 playing.resetAll();
             }
         }

@@ -15,9 +15,10 @@ public class AudioOptions {
 
     private VolumeButton volumeButton;
     private SoundButton musicButton, sfxButton;
+    private Game game;
 
-
-    public AudioOptions() {
+    public AudioOptions(Game game) {
+        this.game = game;
         createSoundButtons();
         createVolumeButton();
     }
@@ -56,7 +57,11 @@ public class AudioOptions {
 
     public void mouseDragged(MouseEvent e) {
         if (volumeButton.isMousePressed()) {
-            volumeButton.changeX(e.getX());
+            float valueBefore = volumeButton.getFloatValue();
+            volumeButton.changeX(e.getX()); // Changing X changes visual position and floatValue for audio level.
+            float valueAfter = volumeButton.getFloatValue();
+            if (valueBefore != valueAfter)
+                game.getAudioPlayer().setVolume(valueAfter); // Here we're using floatValue to actually change audio level.
         }
     }
 
@@ -72,11 +77,15 @@ public class AudioOptions {
 
     public void mouseReleased(MouseEvent mouseEvent) {
         if (isIn(mouseEvent, musicButton)) {
-            if (musicButton.isMousePressed()) // Checking whether pressed mouse is released over pressed button (checking was made in mousePressed() above)
-                musicButton.setMuted(!musicButton.isMuted()); // toggle
+            if (musicButton.isMousePressed()) { // Checking whether pressed mouse is released over pressed button (checking was made in mousePressed() above)
+                musicButton.setMuted(!musicButton.isMuted()); // Changing appearance.
+                game.getAudioPlayer().toggleSongMute(); // Actual changing music mute.
+            }
         } else if (isIn(mouseEvent, sfxButton)) {
-            if (sfxButton.isMousePressed())
-                sfxButton.setMuted(!sfxButton.isMuted()); // toggle
+            if (sfxButton.isMousePressed()) {
+                sfxButton.setMuted(!sfxButton.isMuted()); // Changing appearance.
+                game.getAudioPlayer().toggleEffectMute(); // Actual changing effect mute.
+            }
         }
         musicButton.resetBools();
         sfxButton.resetBools();

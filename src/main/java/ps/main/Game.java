@@ -1,5 +1,6 @@
 package ps.main;
 
+import ps.audio.AudioPlayer;
 import ps.gamestates.GameOptions;
 import ps.gamestates.Gamestate;
 import ps.gamestates.Menu;
@@ -28,6 +29,7 @@ public class Game implements Runnable {
     private Menu menu;
     private GameOptions gameOptions;
     private AudioOptions audioOptions;
+    private AudioPlayer audioPlayer;
 
     // Scaling ang dimensions:
     public final static int TILES_DEFAULT_SIZE = 32;
@@ -50,8 +52,10 @@ public class Game implements Runnable {
         startGameLoop();
     }
 
+    // Instantiations of classes:
     private void initClasses() {
-        audioOptions = new AudioOptions();
+        audioOptions = new AudioOptions(this);
+        audioPlayer = new AudioPlayer();
         menu = new Menu(this);
         playing = new Playing(this);
         gameOptions = new GameOptions(this);
@@ -148,5 +152,9 @@ public class Game implements Runnable {
 
     public GameOptions getGameOptions() {
         return gameOptions;
+    }
+
+    public AudioPlayer getAudioPlayer() {
+        return audioPlayer;
     }
 }

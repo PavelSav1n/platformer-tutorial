@@ -1,5 +1,6 @@
 package ps.gamestates;
 
+import ps.audio.AudioPlayer;
 import ps.main.Game;
 import ps.ui.MenuButton;
 
@@ -19,5 +20,14 @@ public class State {
 
     public Game getGame() {
         return game;
+    }
+
+    // Method to change the state of the game.
+    public void setGameState(Gamestate state) {
+        switch (state) {
+            case MENU -> game.getAudioPlayer().playSong(AudioPlayer.MENU_1);
+            case PLAYING -> game.getAudioPlayer().setLevelSong(game.getPlaying().getLevelManager().getLvlIndex());
+        }
+        Gamestate.state = state;
     }
 }
