@@ -61,11 +61,6 @@ public class GameOverOverlay {
     }
 
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-            playing.resetAll();
-            Gamestate.state = Gamestate.MENU;
-        }
-
     }
 
     // If we're inside button
@@ -96,6 +91,7 @@ public class GameOverOverlay {
             if (play.isMousePressed()) {
                 System.out.println("REPLAY! from Game over");
                 playing.resetAll();
+                playing.getGame().getAudioPlayer().setLevelSong(playing.getLevelManager().getLvlIndex()); // Play song after pressing the replay btn from game over.
             }
         }
         menu.resetBools();

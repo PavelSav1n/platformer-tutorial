@@ -113,14 +113,14 @@ public class AudioPlayer {
         playEffect(LVL_COMPLETED);
     }
 
-    private void playAttackSound() {
+    public void playAttackSound() {
         int start = 4; // Starting index of attacking effect sound.
         start += rand.nextInt(3);
         playEffect(start);
     }
 
     // Method will play a specified effect sound from effects[] by it effectID.
-    private void playEffect(int effectID) {
+    public void playEffect(int effectID) {
         // If we'll start to play Clip after it was played already, we will be at the end of a Clip, and it won't play it. So we need to reset it:
         effects[effectID].setMicrosecondPosition(0);
         effects[effectID].start();

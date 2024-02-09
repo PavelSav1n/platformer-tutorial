@@ -1,5 +1,6 @@
 package ps.entities;
 
+import ps.audio.AudioPlayer;
 import ps.gamestates.Playing;
 import ps.main.Game;
 import ps.utils.LoadSave;
@@ -32,19 +33,25 @@ public class Player extends Entity {
 
     // StatusBarUI
     private BufferedImage statusBarImg;
-
+    // BG for healthBar and powerBar:
     private int statusBarWidth = (int) (192 * Game.SCALE);
     private int statusBarHeight = (int) (58 * Game.SCALE);
     private int statusBarX = (int) (10 * Game.SCALE);
     private int statusBarY = (int) (10 * Game.SCALE);
-
+    // healthBar
     private int healthBarWidth = (int) (150 * Game.SCALE);
     private int healthBarHeight = (int) (4 * Game.SCALE);
     private int healthBarXStart = (int) (34 * Game.SCALE);
     private int healthBarYStart = (int) (14 * Game.SCALE);
-
     private int healthWidth = healthBarWidth;
-
+    // powerBar
+    private int powerBarWidth = (int) (104 * Game.SCALE);
+    private int powerBarHeight = (int) (2 * Game.SCALE);
+    private int powerBarXStart = (int) (44 * Game.SCALE);
+    private int powerBarYStart = (int) (34 * Game.SCALE);
+    private int powerWidth = powerBarWidth;
+    private int powerMaxValue = 200;
+    private int powerValue = powerMaxValue;
 
     private int flipX = 0;
     private int flipW = 1;
@@ -53,6 +60,13 @@ public class Player extends Entity {
     private Playing playing;
 
     private int tileY = 0; // to check Y tile (line of sight check).
+
+    // Power Attack.
+    private boolean powerAttackActive;
+    private int powerAttackTick; // Duration of power attack in ticks.
+    private int powerGrowSpeed = 15; // The amount of ticks it takes to regenerate some power.
+    private int powerGrowTick;
+
 
     public Player(float x, float y, int width, int height, Playing playing) {
         super(x, y, width, height);
@@ -80,6 +94,7 @@ public class Player extends Entity {
 
     public void update() {
         updateHealthBar(); // updating healthbar and then checking weather game is over.
+        updatePowerBar();
 
         // Die mechanics
         if (currentHealth <= 0) {
@@ -87,9 +102,12 @@ public class Player extends Entity {
                 state = DEAD;
                 animationTick = 0;
                 animationIndex = 0;
-                playing.setPlayerDying(true); // stopping everything but player animation of death
+                playing.setPlayerDying(true); // stopping everything but player animation of death.
+                playing.getGame().getAudioPlayer().playEffect(AudioPlayer.DIE); // Play death sound effect.
             } else if (animationIndex == getSpriteAmount(DEAD) - 1 && animationTick >= ANI_SPEED - 1) { // -1 because index starts with 0.
                 playing.setGameOver(true);
+                playing.getGame().getAudioPlayer().stopSong(); // Stop playing song.
+                playing.getGame().getAudioPlayer().playEffect(AudioPlayer.GAMEOVER); // Start playing game over effect.
             } else
                 updateAnimationTick();
             return; // this needed to not go through the rest of the code below
@@ -102,13 +120,21 @@ public class Player extends Entity {
             checkPotionTouched();
             checkSpikesTouched();
             tileY = (int) (hitbox.y / Game.TILES_SIZE); // updating tileY
+            if (powerAttackActive) {
+                powerAttackTick++;
+                if (powerAttackTick >= 35) { // Duration of powerAttack animation.
+                    powerAttackTick = 0;
+                    powerAttackActive = false;
+                }
+            }
         }
-        if (attacking)
+        if (attacking || powerAttackActive)
             checkAttack();
 //        updateHitbox(); //
         updateAnimationTick();
         setAnimation(); // to set proper playerAction
     }
+
 
     private void checkSpikesTouched() {
         playing.checkSpikesTouched(this);
@@ -119,21 +145,35 @@ public class Player extends Entity {
     }
 
     private void checkAttack() {
-        if (attackChecked || animationIndex != 1)
+        if (attackChecked || animationIndex != 1) // If attack animation is in motion we should not be here.
             return;
         attackChecked = true;
+
+        if (powerAttackActive)
+            attackChecked = false; // To skip attack check and to hit targets with each tick.
+
         playing.checkEnemyHit(attackBox);
         playing.checkObjectHit(attackBox);
-
+        playing.getGame().getAudioPlayer().playAttackSound();
     }
 
+    // Updating attackBox placement according to movement direction (left/right or powerAttack with flipW direction)
     private void updateAttackBox() {
-        if (right) {
+        if (right || (powerAttackActive && flipW == 1)) {
             attackBox.x = hitbox.x + hitbox.width + (int) (Game.SCALE * 10);
-        } else if (left) {
-            attackBox.x = hitbox.x - hitbox.width - (int) (Game.SCALE * 10); // Consider this like bullshit. There must not be -hitbox.width
+        } else if (left || (powerAttackActive && flipW == -1)) {
+            attackBox.x = hitbox.x - hitbox.width - (int) (Game.SCALE * 10);
         }
         attackBox.y = hitbox.y + (int) (Game.SCALE * 10);
+    }
+
+    private void updatePowerBar() {
+        powerWidth = (int) (powerValue / (float) powerMaxValue * powerBarWidth); // If powerValue shrinks then powerWidth will shrink.
+        powerGrowTick++;
+        if (powerGrowTick >= powerGrowSpeed) {
+            powerGrowTick = 0;
+            changePower(1); // The amount of power to regenerate per tick.
+        }
     }
 
     private void updateHealthBar() {
@@ -156,10 +196,16 @@ public class Player extends Entity {
 
 
     private void drawUI(Graphics g) {
+        // Background UI
         g.drawImage(statusBarImg, statusBarX, statusBarY, statusBarWidth, statusBarHeight, null);
+
+        // Health bar
         g.setColor(Color.red);
         g.fillRect(healthBarXStart + statusBarX, healthBarYStart + statusBarY, healthWidth, healthBarHeight);
 
+        // Power bar
+        g.setColor(Color.yellow);
+        g.fillRect(powerBarXStart + statusBarX, powerBarYStart + statusBarY, powerWidth, powerBarHeight); // powerWidth not powerBarWidth to make it able to shrink or expand according to current values
     }
 
     // Updating position so, that we can hold two keys and run diagonally or stop moving at all.
@@ -171,9 +217,10 @@ public class Player extends Entity {
         if (jump) {
             jump();
         }
-        // If A+D or not A+D we should not be here.
+        // If we're pressing A+D or not A+D, and we're not in the powerAttack motion -- we should not be here
         if (!inAir)
-            if ((!left && !right) || (right && left)) return;
+            if (!powerAttackActive)
+                if ((!left && !right) || (right && left)) return;
 
         float xSpeed = 0; // Speed is by default 0.
 
@@ -187,14 +234,24 @@ public class Player extends Entity {
             flipX = 0;
             flipW = 1;
         }
+
+        if (powerAttackActive) {
+            if (!left && !right) { // If we're not going left or right.
+                if (flipW == -1) // If the last time we moved, we were going on the left.
+                    xSpeed = -walkSpeed; // To make xSpeed not 0 but some value.
+                else
+                    xSpeed = walkSpeed;
+            }
+            xSpeed *= 3; // Multiplying xSpeed anyway.
+        }
+
         if (!inAir) {
             if (!isEntityOnFloor(hitbox, lvlData)) {
                 inAir = true;
             }
         }
 
-
-        if (inAir) {
+        if (inAir && !powerAttackActive) {
             if (canMoveHere(hitbox.x, hitbox.y + airSpeed, hitbox.width, hitbox.height, lvlData)) {
                 hitbox.y += airSpeed;
                 airSpeed += GRAVITY;
@@ -217,6 +274,7 @@ public class Player extends Entity {
 
     private void jump() {
         if (inAir) return;
+        playing.getGame().getAudioPlayer().playEffect(AudioPlayer.JUMP);
         inAir = true;
         airSpeed = jumpSpeed;
     }
@@ -230,8 +288,12 @@ public class Player extends Entity {
     private void updateXPosition(float xSpeed) {
         if (canMoveHere(hitbox.x + xSpeed, hitbox.y, hitbox.width, hitbox.height, lvlData)) {
             hitbox.x += xSpeed;
-        } else {
-            hitbox.x = getEntityXPosNextToWall(hitbox, xSpeed);
+        } else { // If we cannot move further
+            hitbox.x = getEntityXPosNextToWall(hitbox, xSpeed); // Stick player to the solid tile.
+            if (powerAttackActive) { // Break power attack
+                powerAttackActive = false;
+                powerAttackTick = 0; // Not to store ticks for the next power attack.
+            }
         }
     }
 
@@ -251,8 +313,12 @@ public class Player extends Entity {
         currentHealth = 0;
     }
 
-    public void changePower(int bluePotionValue) {
-        System.out.println("ADDED POWER!");
+    public void changePower(int value) {
+        powerValue += value;
+        if (powerValue >= powerMaxValue)
+            powerValue = powerMaxValue;
+        else if (powerValue <= 0)
+            powerValue = 0;
     }
 
     private void setAnimation() {
@@ -269,6 +335,14 @@ public class Player extends Entity {
                 state = JUMPING;
             else
                 state = FALLING;
+        }
+
+        // Will be the same animation throughout entire power attack.
+        if (powerAttackActive) {
+            state = ATTACK;
+            animationIndex = 1;
+            animationTick = 0;
+            return;
         }
 
         if (attacking) {
@@ -377,6 +451,15 @@ public class Player extends Entity {
 
     public int getTileY() {
         return tileY;
+    }
+
+    public void powerAttack() {
+        if (powerAttackActive)
+            return;
+        if (powerValue >= 60) {
+            powerAttackActive = true;
+            changePower(-60);
+        }
     }
 }
 

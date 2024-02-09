@@ -213,6 +213,8 @@ public class Playing extends State implements StateMethods {
         if (!gameOver) {
             if (mouseEvent.getButton() == MouseEvent.BUTTON1) {
                 player.setAttacking(true);
+            } else if (mouseEvent.getButton() == MouseEvent.BUTTON3) {
+                player.powerAttack();
             }
             if (paused)
                 pauseOverlay.mousePressed(mouseEvent);
@@ -238,7 +240,7 @@ public class Playing extends State implements StateMethods {
             else if (levelCompleted) {
                 levelCompletedOverlay.mouseReleased(mouseEvent);
             }
-        }else
+        } else
             gameOverOverlay.mouseReleased(mouseEvent);
     }
 
@@ -250,7 +252,7 @@ public class Playing extends State implements StateMethods {
             else if (levelCompleted) {
                 levelCompletedOverlay.mouseMoved(mouseEvent);
             }
-        }else
+        } else
             gameOverOverlay.mouseMoved(mouseEvent);
     }
 
@@ -299,6 +301,8 @@ public class Playing extends State implements StateMethods {
 
     public void setLevelCompleted(boolean levelCompleted) {
         this.levelCompleted = levelCompleted;
+        if(levelCompleted)
+            game.getAudioPlayer().lvlCompleted();
     }
 
     public EnemyManager getEnemyManager() {
