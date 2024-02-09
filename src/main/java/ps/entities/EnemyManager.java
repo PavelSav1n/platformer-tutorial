@@ -64,12 +64,13 @@ public class EnemyManager {
     // Player damage to Crabbies
     public void checkEnemyHit(Rectangle2D.Float attackBox) {
         for (Crabby crabby : crabbies) {
-            if (crabby.isActive()) {
-                if (attackBox.intersects(crabby.getHitbox())) {
-                    crabby.hurt(10);
-                    return;
+            if (crabby.getCurrentHealth() > 0) // Without this check dead crab stays in death animation while we're hitting him.
+                if (crabby.isActive()) {
+                    if (attackBox.intersects(crabby.getHitbox())) {
+                        crabby.hurt(10);
+                        return;
+                    }
                 }
-            }
         }
 
     }

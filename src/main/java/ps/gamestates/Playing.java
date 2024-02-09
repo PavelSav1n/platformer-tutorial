@@ -66,15 +66,16 @@ public class Playing extends State implements StateMethods {
 
 
     public void loadNextLevel() {
-        resetAll();
         levelManager.loadNextLevel();
-        player.setSpawn(levelManager.getCurrentLevel().getPlayerSpawn());
+        player.setSpawn(levelManager.getCurrentLevel().getPlayerSpawn());resetAll();
+        resetAll(); // Resetting atatckBox and stuff after setting a Player.
     }
 
     // Initialising enemies and objects of the game.
     private void loadStartLevel() {
         enemyManager.loadEnemies(levelManager.getCurrentLevel());
         objectManager.loadObjects(levelManager.getCurrentLevel());
+        resetAll(); // Added due to attackBox misplacing at the start.
     }
 
     private void calcLvlOffset() {

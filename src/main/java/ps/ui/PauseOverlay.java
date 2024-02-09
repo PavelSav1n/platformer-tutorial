@@ -90,6 +90,7 @@ public class PauseOverlay {
     public void mouseReleased(MouseEvent mouseEvent) {
         if (isIn(mouseEvent, menuB)) {
             if (menuB.isMousePressed()) {
+                playing.resetAll(); // To restart lvl when we go to the menu.
                 playing.setGameState(Gamestate.MENU); // going to menu and playing menu song.
                 playing.unpauseGame();
             }
