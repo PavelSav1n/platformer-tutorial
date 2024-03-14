@@ -1,16 +1,11 @@
 package ps.utils;
 
-import ps.entities.Crabby;
+//import ps.entities.Crabby;
+
 import ps.main.Game;
-import ps.objects.*;
+import ps.objects.Projectile;
 
-import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-
-import static ps.utils.Constants.EnemyConstants.CRABBY;
-import static ps.utils.Constants.ObjectConstants.*;
 
 public class HelpMethods {
 
@@ -65,12 +60,18 @@ public class HelpMethods {
         return true;
     }
 
-    // Checking if the hitbox.x + xSpeed pixel isSolid data of lvlData (actually we're not checking pixel hitbox.x + xSpeed + hitbox.width on our right side)
     public static boolean isFloor(Rectangle2D.Float hitbox, float xSpeed, int[][] lvlData) {
-        if (xSpeed > 0) // It means Enemy is moving RIGHT
+        if (xSpeed > 0)
             return isSolid(hitbox.x + hitbox.width + xSpeed, hitbox.y + hitbox.height + 1, lvlData);
         else
             return isSolid(hitbox.x + xSpeed, hitbox.y + hitbox.height + 1, lvlData);
+    }
+
+    public static boolean isFloor(Rectangle2D.Float hitbox, int[][] lvlData) {
+        if (!isSolid(hitbox.x + hitbox.width, hitbox.y + hitbox.height + 1, lvlData))
+            if (!isSolid(hitbox.x, hitbox.y + hitbox.height + 1, lvlData))
+                return false;
+        return true;
     }
 
     // Defining what solid data is:
@@ -90,12 +91,33 @@ public class HelpMethods {
         return isSolid(projectile.getHitbox().x + projectile.getHitbox().width / 2, projectile.getHitbox().y + projectile.getHitbox().height / 2, lvlData); // need to add some offsets;
     }
 
+    public static boolean IsEntityInWater(Rectangle2D.Float hitbox, int[][] lvlData) {
+        // Will only check if entity touch top water. Can't reach bottom water if not
+        // touched top water.
+        if (GetTileValue(hitbox.x, hitbox.y + hitbox.height, lvlData) != 48)
+            if (GetTileValue(hitbox.x + hitbox.width, hitbox.y + hitbox.height, lvlData) != 48)
+                return false;
+        return true;
+    }
+
+    private static int GetTileValue(float xPos, float yPos, int[][] lvlData) {
+        int xCord = (int) (xPos / Game.TILES_SIZE);
+        int yCord = (int) (yPos / Game.TILES_SIZE);
+        return lvlData[yCord][xCord];
+    }
+
     public static boolean isTileSolid(int xTile, int yTile, int[][] lvlData) {
         int value = lvlData[yTile][xTile];
 
-        if (value >= 48 || value < 0 || value != 11)
-            return true; // We have only 48 tiles, so checking that and 11th tile is void tile, so we can pass through.
-        return false;
+        // We have only 49 tiles, so checking that and 11th tile is void tile, so we can pass through.
+        switch (value) {
+            case 11, 48, 49 -> {
+                return false;
+            }
+            default -> {
+                return true;
+            }
+        }
     }
 
     public static boolean canCannonSeePlayer(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int tileY) {
@@ -130,124 +152,19 @@ public class HelpMethods {
     }
 
     // Checking whether there is an obstacle in sight between two objects.
-    public static boolean isSightClear(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.
-            Float secondHitbox, int tileY) {
-        int firstXTile = (int) (firstHitbox.x / Game.TILES_SIZE);
-        int secondXTile = (int) (secondHitbox.x / Game.TILES_SIZE);
+    public static boolean isSightClear(int[][] lvlData, Rectangle2D.Float enemyBox, Rectangle2D.Float playerBox, int yTile) {
+        int firstXTile = (int) (enemyBox.x / Game.TILES_SIZE);
 
-        // We need to check only those tile which in between firstXTile and secondXTile
-        if (firstXTile > secondXTile)  // Going through tile from left to right, so we need this check
-            return isAllTilesWalkable(secondXTile, firstXTile, tileY, lvlData);
+        int secondXTile;
+        if (isSolid(playerBox.x, playerBox.y + playerBox.height + 1, lvlData))
+            secondXTile = (int) (playerBox.x / Game.TILES_SIZE);
         else
-            return isAllTilesWalkable(firstXTile, secondXTile, tileY, lvlData);
+            secondXTile = (int) ((playerBox.x + playerBox.width) / Game.TILES_SIZE);
 
-
-    }
-
-    // Returns int 2dArray which is filled with red color int (0-255). It will be mapped on our level.
-    public static int[][] GetLevelData(BufferedImage img) {
-//        int[][] lvlData = new int[Game.TILES_IN_HEIGHT][Game.TILES_IN_WIDTH]; // static lvl
-        int[][] lvlData = new int[img.getHeight()][img.getWidth()]; // will be lvls with different dimensions
-        // Going through the image pixel array.
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-                int value = color.getRed();
-                if (value >= 48)
-                    value = 0; // If there's a mistake in initial image, we can easily overcome the 48 red int value of our sprite array. So here is protection.
-                lvlData[i][j] = value; // saving red data to 2dArray
-            }
-        }
-        return lvlData;
-    }
-
-    // Fill the list with crabs with the specified coordinates according to lvl atlas.
-    public static ArrayList<Crabby> GetCrabs(BufferedImage img) {
-        ArrayList<Crabby> list = new ArrayList<>();
-
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-                int value = color.getGreen();
-                if (value == CRABBY)
-                    list.add(new Crabby(j * Game.TILES_SIZE, i * Game.TILES_SIZE)); // filling list with crabbies.
-
-            }
-        }
-        return list;
-    }
-
-    // Fill the list with Potions with the specified coordinates according to lvl atlas.
-    public static ArrayList<Potion> GetPotions(BufferedImage img) {
-        ArrayList<Potion> list = new ArrayList<>();
-
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-                int value = color.getBlue();
-                if (value == RED_POTION || value == BLUE_POTION)
-                    list.add(new Potion(j * Game.TILES_SIZE, i * Game.TILES_SIZE, value));
-            }
-        }
-        return list;
-    }
-
-    // Fill the list with game containers with the specified coordinates according to lvl atlas.
-    public static ArrayList<GameContainer> GetContainers(BufferedImage img) {
-        ArrayList<GameContainer> list = new ArrayList<>();
-
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-                int value = color.getBlue();
-                if (value == BARREL || value == BOX)
-                    list.add(new GameContainer(j * Game.TILES_SIZE, i * Game.TILES_SIZE, value));
-            }
-        }
-        return list;
-    }
-
-    public static Point GetPlayerSpawn(BufferedImage img) {
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-                int value = color.getGreen();
-                if (value == 100) {
-                    return new Point(j * Game.TILES_SIZE, i * Game.TILES_SIZE);
-                }
-
-            }
-        }
-        return new Point(1 * Game.TILES_SIZE, 1 * Game.TILES_SIZE);
-    }
-
-    public static ArrayList<Spike> GetSpikes(BufferedImage img) {
-        ArrayList<Spike> list = new ArrayList<>();
-
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-                int value = color.getBlue();
-                if (value == SPIKE)
-                    list.add(new Spike(j * Game.TILES_SIZE, i * Game.TILES_SIZE, SPIKE));
-            }
-        }
-        return list;
-    }
-
-    public static ArrayList<Cannon> GetCannons(BufferedImage img) {
-        ArrayList<Cannon> list = new ArrayList<>();
-
-        for (int i = 0; i < img.getHeight(); i++) {
-            for (int j = 0; j < img.getWidth(); j++) {
-                Color color = new Color(img.getRGB(j, i)); // getting color of a current pixel
-                int value = color.getBlue();
-                if (value == CANNON_LEFT || value == CANNON_RIGHT) {
-                    list.add(new Cannon(j * Game.TILES_SIZE, i * Game.TILES_SIZE, value));
-                }
-            }
-        }
-        return list;
+        if (firstXTile > secondXTile)
+            return isAllTilesWalkable(secondXTile, firstXTile, yTile, lvlData);
+        else
+            return isAllTilesWalkable(firstXTile, secondXTile, yTile, lvlData);
     }
 }
 

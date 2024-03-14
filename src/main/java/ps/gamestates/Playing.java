@@ -36,7 +36,7 @@ public class Playing extends State implements StateMethods {
     private final int rightBorder = (int) (0.55 * Game.GAME_WIDTH);
     private int maxLvlOffsetX; // number of px of current level offset
 
-    private BufferedImage backgroundImg, bigCloud, smallCloud;
+    private BufferedImage backgroundImg, bigCloud, smallCloud, mountain;
     private int[] smallCloudsPos; // will store Y values of small clouds to place them randomly.
     private Random rnd = new Random();
 
@@ -52,9 +52,10 @@ public class Playing extends State implements StateMethods {
         backgroundImg = LoadSave.GetSpriteAtlas(LoadSave.PLAYING_BG_IMG);
         bigCloud = LoadSave.GetSpriteAtlas(LoadSave.BIG_CLOUDS);
         smallCloud = LoadSave.GetSpriteAtlas(LoadSave.SMALL_CLOUDS);
+        mountain = LoadSave.GetSpriteAtlas(LoadSave.MOUNTAIN);
         smallCloudsPos = new int[8];
         for (int i = 0; i < smallCloudsPos.length; i++) {
-            smallCloudsPos[i] = (int) (90 * Game.SCALE) + rnd.nextInt((int) (100 * Game.SCALE)); // we got here from 90 to 100 at least.
+            smallCloudsPos[i] = (int) (90 * Game.SCALE) + rnd.nextInt((int) (200 * Game.SCALE)); // we got here from 50 to 100 at least.
         }
         calcLvlOffset();
         loadStartLevel();
@@ -67,7 +68,8 @@ public class Playing extends State implements StateMethods {
 
     public void loadNextLevel() {
         levelManager.loadNextLevel();
-        player.setSpawn(levelManager.getCurrentLevel().getPlayerSpawn());resetAll();
+        player.setSpawn(levelManager.getCurrentLevel().getPlayerSpawn());
+        resetAll();
         resetAll(); // Resetting atatckBox and stuff after setting a Player.
     }
 
@@ -80,6 +82,11 @@ public class Playing extends State implements StateMethods {
 
     private void calcLvlOffset() {
         maxLvlOffsetX = levelManager.getCurrentLevel().getLvlOffsetX();
+    }
+
+    // Needed for GAME OVER in the end of lvl
+    public float totalLvlWidth() {
+        return levelManager.getCurrentLevel().getLevelData()[0].length * Game.TILES_DEFAULT_SIZE * Game.SCALE;
     }
 
     // Initializing
@@ -117,7 +124,7 @@ public class Playing extends State implements StateMethods {
         } else {
             levelManager.update();
             objectManager.update(levelManager.getCurrentLevel().getLevelData(), player);
-            enemyManager.update(levelManager.getCurrentLevel().getLevelData(), player); // To manage lvl data like solid blocks and cliffs inside Enemy class (updateMove() method)
+            enemyManager.update(levelManager.getCurrentLevel().getLevelData()); // To manage lvl data like solid blocks and cliffs inside Enemy class (updateMove() method)
             player.update();
             checkCloseToBorder();
         }
@@ -132,21 +139,30 @@ public class Playing extends State implements StateMethods {
         else if (diff < leftBorder)
             xLvlOffset += diff - leftBorder;
 
-        if (xLvlOffset > maxLvlOffsetX)
+        if (xLvlOffset > maxLvlOffsetX) {
             xLvlOffset = maxLvlOffsetX;
+        }
         if (xLvlOffset < 0)
             xLvlOffset = 0;
+
+        // Completing level when reaching its right border:
+        if (player.getHitbox().x >= totalLvlWidth() - player.getHitbox().width - 1) {
+            setLevelCompleted(true);
+        }
+
     }
 
     @Override
     public void draw(Graphics graphics) {
         graphics.drawImage(backgroundImg, 0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT, null);
+        drawMountains(graphics);
         drawClouds(graphics);
 
         levelManager.draw(graphics, xLvlOffset);
         player.render(graphics, xLvlOffset);
         enemyManager.draw(graphics, xLvlOffset);
         objectManager.draw(graphics, xLvlOffset);
+        objectManager.drawBackgroundTrees(graphics, xLvlOffset);
 
         if (paused) {
             graphics.setColor(new Color(0, 0, 0, 150)); // Semi transparent black.
@@ -161,13 +177,19 @@ public class Playing extends State implements StateMethods {
     }
 
     private void drawClouds(Graphics g) {
-        for (int i = 0; i < 3; i++) {
-            g.drawImage(bigCloud, i * BIG_CLOUD_WIDTH - (int) (xLvlOffset * 0.2), (int) (204 * Game.SCALE), BIG_CLOUD_WIDTH, BIG_CLOUD_HEIGHT, null);
+        for (int i = 0; i < smallCloudsPos.length; i++) {
+            g.drawImage(bigCloud, i * BIG_CLOUD_WIDTH - (int) (xLvlOffset * 0.2), smallCloudsPos[i] + 150, BIG_CLOUD_WIDTH, BIG_CLOUD_HEIGHT, null);
         }
+
         for (int i = 0; i < smallCloudsPos.length; i++) {
             g.drawImage(smallCloud, SMALL_CLOUD_WIDTH * 4 * i - (int) (xLvlOffset * 0.3), smallCloudsPos[i], SMALL_CLOUD_WIDTH, SMALL_CLOUD_HEIGHT, null);
         }
+    }
 
+    private void drawMountains(Graphics g) {
+        for (int i = 0; i < 5; i++) {
+            g.drawImage(mountain, i * MOUNTAIN_WIDTH - (int) (xLvlOffset * 0.1), (int) (204 * Game.SCALE), MOUNTAIN_WIDTH, MOUNTAIN_HEIGHT, null);
+        }
     }
 
     public void resetAll() {
@@ -181,8 +203,12 @@ public class Playing extends State implements StateMethods {
         objectManager.resetAllObjects();
     }
 
-    public void checkEnemyHit(Rectangle2D.Float attackBox) {
-        enemyManager.checkEnemyHit(attackBox);
+    public int checkEnemyHit(Rectangle2D.Float attackBox) {
+        return enemyManager.checkEnemyHit(attackBox);
+    }
+
+    public int checkEnemyHitWithCup(Rectangle2D.Float attackBox) {
+        return enemyManager.checkEnemyHitWithCup(attackBox);
     }
 
     public void checkPotionTouched(Rectangle2D.Float hitbox) {
@@ -216,6 +242,8 @@ public class Playing extends State implements StateMethods {
                 player.setAttacking(true);
             } else if (mouseEvent.getButton() == MouseEvent.BUTTON3) {
                 player.powerAttack();
+            } else if (mouseEvent.getButton() == MouseEvent.BUTTON2) {
+                player.setThrowingCups(true);
             }
             if (paused)
                 pauseOverlay.mousePressed(mouseEvent);
@@ -302,7 +330,7 @@ public class Playing extends State implements StateMethods {
 
     public void setLevelCompleted(boolean levelCompleted) {
         this.levelCompleted = levelCompleted;
-        if(levelCompleted)
+        if (levelCompleted)
             game.getAudioPlayer().lvlCompleted();
     }
 
@@ -317,5 +345,17 @@ public class Playing extends State implements StateMethods {
 
     public void setPlayerDying(boolean playerDying) {
         this.playerDying = playerDying;
+    }
+
+    public int getMaxLvlOffsetX() {
+        return maxLvlOffsetX;
+    }
+
+    public int getRightBorder() {
+        return rightBorder;
+    }
+
+    public int getxLvlOffset() {
+        return xLvlOffset;
     }
 }

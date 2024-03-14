@@ -12,6 +12,12 @@ public class Constants {
         public static final int CANNON_BALL_DEFAULT_HEIGHT = 15;
         public static final int CANNON_BALL_WIDTH = (int) (CANNON_BALL_DEFAULT_WIDTH * Game.SCALE);
         public static final int CANNON_BALL_HEIGHT = (int) (CANNON_BALL_DEFAULT_HEIGHT * Game.SCALE);
+
+        public static final int CUP_DEFAULT_WIDTH = 11;
+        public static final int CUP_DEFAULT_HEIGHT = 10;
+        public static final int CUP_WIDTH = (int) (CUP_DEFAULT_WIDTH * Game.SCALE);
+        public static final int CUP_HEIGHT = (int) (CUP_DEFAULT_HEIGHT * Game.SCALE);
+
         public static final float SPEED = 0.75f * Game.SCALE;
     }
 
@@ -23,6 +29,11 @@ public class Constants {
         public static final int SPIKE = 4;
         public static final int CANNON_LEFT = 5;
         public static final int CANNON_RIGHT = 6;
+        public static final int TREE_ONE = 7;
+        public static final int TREE_TWO = 8;
+        public static final int TREE_THREE = 9;
+        public static final int CUP = 10;
+        public static final int CANNON_BALL = 11;
 
 
         public static final int RED_POTION_VALUE = 15;
@@ -50,50 +61,96 @@ public class Constants {
 
         public static int getSpriteAmount(int objType) {
             switch (objType) {
+                case TREE_ONE -> {
+                    return 6;
+                }
                 case RED_POTION, BLUE_POTION, CANNON_LEFT, CANNON_RIGHT -> {
                     return 7;
                 }
-                case BARREL, BOX -> {
+                case BARREL, BOX, CUP -> {
                     return 8;
                 }
             }
             return 1;
         }
+
+        public static int GetTreeOffsetX(int treeType) {
+            return switch (treeType) {
+                case TREE_ONE, TREE_TWO -> (Game.TILES_SIZE / 2) - (GetTreeWidth(treeType) / 2);
+//                case TREE_TWO -> (int) (Game.TILES_SIZE / 2.5f);
+                case TREE_THREE -> (int) (Game.TILES_SIZE / 1.65f);
+                default -> 0;
+            };
+
+        }
+
+        public static int GetTreeOffsetY(int treeType) {
+
+            return switch (treeType) {
+                case TREE_ONE, TREE_TWO -> -GetTreeHeight(treeType) + Game.TILES_SIZE;
+                case TREE_THREE -> -GetTreeHeight(treeType) + (int) (Game.TILES_SIZE / 1.25f);
+                default -> 0;
+            };
+
+        }
+
+        public static int GetTreeWidth(int treeType) {
+            return switch (treeType) {
+                case TREE_ONE, TREE_TWO -> (int) (58 * Game.SCALE);
+//                case TREE_TWO -> (int) (62 * Game.SCALE);
+                case TREE_THREE -> -(int) (62 * Game.SCALE);
+                default -> 0;
+            };
+        }
+
+        public static int GetTreeHeight(int treeType) {
+            switch (treeType) {
+                case TREE_ONE:
+                    return (int) (73 * Game.SCALE);
+                case TREE_TWO, TREE_THREE:
+                    return (int) (40 * Game.SCALE);
+
+            }
+            return 0;
+        }
     }
 
     public static class EnemyConstants {
-        public static final int CRABBY = 0;
-        public static final int CRABBY_MAX_HEALTH = 10;
+        public static final int OMON = 0;
+        public static final int OMON_MAX_HEALTH = 100;
 
         public static final int IDLE = 0;
         public static final int RUNNING = 1;
-        public static final int ATTACK = 2;
-        public static final int HIT = 3;
-        public static final int DEAD = 4;
+        public static final int ATTACK = 4;
+        public static final int HIT = 5;
+        public static final int DEAD = 6;
 
-        public static final int CRABBY_WIDTH_DEFAULT = 72;
-        public static final int CRABBY_HEIGHT_DEFAULT = 32;
+        public static final int OMON_WIDTH_DEFAULT = 64;
+        public static final int OMON_HEIGHT_DEFAULT = 40;
 
-        public static final int CRABBY_WIDTH = (int) (CRABBY_WIDTH_DEFAULT * Game.SCALE);
-        public static final int CRABBY_HEIGHT = (int) (CRABBY_HEIGHT_DEFAULT * Game.SCALE);
+        public static final int OMON_WIDTH = (int) (OMON_WIDTH_DEFAULT * Game.SCALE);
+        public static final int OMON_HEIGHT = (int) (OMON_HEIGHT_DEFAULT * Game.SCALE);
 
-        public static final int CRABBY_DRAWOFFSET_X = (int) (27 * Game.SCALE); // Distance from X border of sprite to x border of hitbox
-        public static final int CRABBY_DRAWOFFSET_Y = (int) (9 * Game.SCALE); // same here but Y
+        public static final int OMON_DRAWOFFSET_X = (int) (22 * Game.SCALE); // Margin from X border of sprite to x border of hitbox
+        public static final int OMON_DRAWOFFSET_Y = (int) (4 * Game.SCALE); // same here for Y
 
         public static int getSpriteAmount(int enemyType, int enemyState) {
             switch (enemyType) {
-                case CRABBY:
+                case OMON:
                     switch (enemyState) {
                         case IDLE:
-                            return 9;
+//                            return 9;
+                            return 5;
                         case RUNNING:
                             return 6;
                         case ATTACK:
-                            return 7;
+//                            return 7;
+                            return 3;
                         case HIT:
                             return 4;
                         case DEAD:
-                            return 5;
+//                            return 5;
+                            return 8;
                     }
             }
             return 0;
@@ -101,8 +158,8 @@ public class Constants {
 
         public static int getMaxHealth(int enemyType) {
             switch (enemyType) {
-                case CRABBY -> {
-                    return CRABBY_MAX_HEALTH;
+                case OMON -> {
+                    return OMON_MAX_HEALTH;
                 }
                 default -> {
                     return 1;
@@ -112,7 +169,7 @@ public class Constants {
 
         public static int getEnemyDmg(int enemyType) {
             switch (enemyType) {
-                case CRABBY -> {
+                case OMON -> {
                     return 15;
                 }
                 default -> {
@@ -129,11 +186,15 @@ public class Constants {
         public static final int BIG_CLOUD_HEIGHT_DEFAULT = 101;
         public static final int SMALL_CLOUD_WIDTH_DEFAULT = 74;
         public static final int SMALL_CLOUD_HEIGHT_DEFAULT = 24;
+        public static final int MOUNTAIN_WIDTH_DEFAULT = 1725;
+        public static final int MOUNTAIN_HEIGHT_DEFAULT = 752;
 
         public static final int SMALL_CLOUD_WIDTH = (int) (SMALL_CLOUD_WIDTH_DEFAULT * Game.SCALE);
         public static final int SMALL_CLOUD_HEIGHT = (int) (SMALL_CLOUD_HEIGHT_DEFAULT * Game.SCALE);
         public static final int BIG_CLOUD_WIDTH = (int) (BIG_CLOUD_WIDTH_DEFAULT * Game.SCALE);
         public static final int BIG_CLOUD_HEIGHT = (int) (BIG_CLOUD_HEIGHT_DEFAULT * Game.SCALE);
+        public static final int MOUNTAIN_WIDTH = (int) (MOUNTAIN_WIDTH_DEFAULT / 3 * Game.SCALE);
+        public static final int MOUNTAIN_HEIGHT = (int) (MOUNTAIN_HEIGHT_DEFAULT / 3 * Game.SCALE);
     }
 
     public static class UI {
@@ -183,6 +244,7 @@ public class Constants {
         public static final int HIT = 5;
         public static final int ATTACK = 4;
         public static final int DEAD = 6;
+        public static final int THROWING = 7;
 
         public static int getSpriteAmount(int player_action) {
 
@@ -194,7 +256,7 @@ public class Constants {
                 case HIT:
                     return 4;
                 case JUMPING:
-                case ATTACK:
+                case ATTACK, THROWING:
                     return 3;
                 case DEAD:
                     return 8;

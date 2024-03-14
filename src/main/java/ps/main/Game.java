@@ -33,9 +33,9 @@ public class Game implements Runnable {
 
     // Scaling ang dimensions:
     public final static int TILES_DEFAULT_SIZE = 32;
-    public final static float SCALE = 2.0f;
-    public final static int TILES_IN_WIDTH = 26; // visible tiles on screen
-    public final static int TILES_IN_HEIGHT = 14; // visible tiles on screen
+    public final static float SCALE = 1.5f;
+    public final static int TILES_IN_WIDTH = 26; // visible tiles on screen (26 default)
+    public final static int TILES_IN_HEIGHT = 14; // visible tiles on screen (14 default)
     public final static int TILES_SIZE = (int) (TILES_DEFAULT_SIZE * SCALE);
     public final static int GAME_WIDTH = TILES_SIZE * TILES_IN_WIDTH;
     public final static int GAME_HEIGHT = TILES_SIZE * TILES_IN_HEIGHT;

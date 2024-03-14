@@ -5,6 +5,9 @@ import ps.main.Game;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+import static ps.utils.Constants.Directions.*;
+import static ps.utils.HelpMethods.canMoveHere;
+
 public abstract class Entity {
 
     protected float x, y; // class that extends this class can use these dimensions.
@@ -18,14 +21,45 @@ public abstract class Entity {
     protected int currentHealth;
     protected float walkSpeed = 1.0f * Game.SCALE;
 
-    //AttackBox
+    // AttackBox.
     protected Rectangle2D.Float attackBox;
+
+    // Push mechanics.
+    protected int pushBackDir;
+    protected float pushDrawOffset;
+    protected int pushBackOffsetDir = UP;
 
     public Entity(float x, float y, int width, int height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+    }
+
+    protected void updatePushBackDrawOffset() {
+        float speed = 0.95f;
+        float limit = -30f;
+
+        if (pushBackOffsetDir == UP) {
+            pushDrawOffset -= speed;
+            if (pushDrawOffset <= limit)
+                pushBackOffsetDir = DOWN;
+        } else {
+            pushDrawOffset += speed;
+            if (pushDrawOffset >= 0)
+                pushDrawOffset = 0;
+        }
+    }
+
+    protected void pushBack(int pushBackDir, int[][] lvlData, float speedMulti) {
+        float xSpeed;
+        if (pushBackDir == LEFT)
+            xSpeed = -walkSpeed;
+        else
+            xSpeed = walkSpeed;
+
+        if (canMoveHere(hitbox.x + xSpeed * speedMulti, hitbox.y, hitbox.width, hitbox.height, lvlData))
+            hitbox.x += xSpeed * speedMulti;
     }
 
     protected void drawHitbox(Graphics graphics, int xLvlOffset) {
@@ -43,12 +77,6 @@ public abstract class Entity {
         hitbox = new Rectangle2D.Float(x, y, (int) (width * Game.SCALE), (int) (height * Game.SCALE));
     }
 
-    // Get new x & y and update hitbox
-//    protected void updateHitbox() {
-//        hitbox.x = (int) x;
-//        hitbox.y = (int) y;
-//    }
-
     public Rectangle2D.Float getHitbox() {
         return hitbox;
     }
@@ -63,5 +91,11 @@ public abstract class Entity {
 
     public int getCurrentHealth() {
         return currentHealth;
+    }
+
+    protected void newState(int state) {
+        this.state = state;
+        animationIndex = 0;
+        animationTick = 0;
     }
 }

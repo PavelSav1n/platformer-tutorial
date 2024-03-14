@@ -3,32 +3,35 @@ package ps.entities;
 import ps.audio.AudioPlayer;
 import ps.gamestates.Playing;
 import ps.main.Game;
+import ps.objects.Projectile;
 import ps.utils.LoadSave;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 import static ps.utils.Constants.ANI_SPEED;
+import static ps.utils.Constants.Directions.*;
 import static ps.utils.Constants.GRAVITY;
+import static ps.utils.Constants.ObjectConstants.CUP;
 import static ps.utils.Constants.PlayerConstants.*;
+import static ps.utils.Constants.Projectiles.*;
 import static ps.utils.HelpMethods.*;
 
 public class Player extends Entity {
 
     private BufferedImage[][] animations;
-
-    private int playerDirection = -1; // Moving state. If not moving =-1, otherwise it's 0, 1, 2 or 3
-    private boolean moving = false;
-    private boolean attacking = false;
+    private boolean moving = false, attacking = false, throwingCups = false;
     private boolean left, right, jump;
     private int[][] lvlData; // We are storing lvl data in player class just for now. We need it to detect collision.
-    private float xDrawOffset = 21 * Game.SCALE; // Offset where the new hitbox starts (not 0x0 but 21x4). A player drawing will use this.
-    private float yDrawOffset = 4 * Game.SCALE; // Sprite of the player is a bit more than hitbox, so we need some offsets to center sprite
+    private float xDrawOffset = 24 * Game.SCALE; // Offset where the new hitbox starts (not 0x0 but 21x4). A player drawing will use this.
+    private float yDrawOffset = 5 * Game.SCALE; // Sprite of the player is a bit more than hitbox, so we need some offsets to center sprite
 
     // Jumping / Gravity
     private float jumpSpeed = -2.25f * Game.SCALE;
     private float fallSpeedAfterCollision = 0.5f * Game.SCALE;
+
 //    private boolean inAir = false;
 
     // StatusBarUI
@@ -67,13 +70,17 @@ public class Player extends Entity {
     private int powerGrowSpeed = 15; // The amount of ticks it takes to regenerate some power.
     private int powerGrowTick;
 
+    // RangedAttack
+    private ArrayList<Projectile> cups = new ArrayList<>();
+    private BufferedImage[] cupImgs;
+
 
     public Player(float x, float y, int width, int height, Playing playing) {
         super(x, y, width, height);
         this.playing = playing;
         this.state = IDLE;
         this.maxHealth = 100;
-        this.currentHealth = 35;
+        this.currentHealth = maxHealth;
         this.walkSpeed = Game.SCALE * 1.0f;
         loadAnimations();
         initHitbox(20, 27); // Initializing & Drawing hitbox with a size of 20x27 at x, y.
@@ -105,21 +112,42 @@ public class Player extends Entity {
                 animationIndex = 0;
                 playing.setPlayerDying(true); // stopping everything but player animation of death.
                 playing.getGame().getAudioPlayer().playEffect(AudioPlayer.DIE); // Play death sound effect.
+                // Check if player died in air
+                if (!isEntityOnFloor(hitbox, lvlData)) {
+                    inAir = true;
+                    airSpeed = 0;
+                }
+
             } else if (animationIndex == getSpriteAmount(DEAD) - 1 && animationTick >= ANI_SPEED - 1) { // -1 because index starts with 0.
                 playing.setGameOver(true);
                 playing.getGame().getAudioPlayer().stopSong(); // Stop playing song.
                 playing.getGame().getAudioPlayer().playEffect(AudioPlayer.GAMEOVER); // Start playing game over effect.
-            } else
+            } else {
                 updateAnimationTick();
+                // Fall if in air
+                if (inAir)
+                    if (canMoveHere(hitbox.x, hitbox.y + airSpeed, hitbox.width, hitbox.height, lvlData)) {
+                        hitbox.y += airSpeed;
+                        airSpeed += GRAVITY;
+                    } else
+                        inAir = false;
+            }
             return; // this needed to not go through the rest of the code below
         }
 
         updateAttackBox();
 
-        updatePosition(); // if moving updating position
+        if (state == HIT) {
+            if (animationIndex <= getSpriteAmount(state) - 3)
+                pushBack(pushBackDir, lvlData, 1.25f);
+            updatePushBackDrawOffset();
+        } else
+            updatePosition(); // if moving updating position
+
         if (moving) {
             checkPotionTouched();
             checkSpikesTouched();
+            checkInsideWater();
             tileY = (int) (hitbox.y / Game.TILES_SIZE); // updating tileY
             if (powerAttackActive) {
                 powerAttackTick++;
@@ -131,11 +159,24 @@ public class Player extends Entity {
         }
         if (attacking || powerAttackActive)
             checkAttack();
-//        updateHitbox(); //
+        if (throwingCups)
+            checkThrowingCups();
+
+        updateCups(lvlData);
         updateAnimationTick();
         setAnimation(); // to set proper playerAction
     }
 
+    private void checkThrowingCups() {
+        if (attackChecked || animationIndex != 1) return;
+        cups.add(new Projectile((int) this.getHitbox().x, (int) this.getHitbox().y, flipW, CUP));
+        attackChecked = true;
+    }
+
+    private void checkInsideWater() {
+        if (IsEntityInWater(hitbox, playing.getLevelManager().getCurrentLevel().getLevelData()))
+            currentHealth = 0;
+    }
 
     private void checkSpikesTouched() {
         playing.checkSpikesTouched(this);
@@ -153,26 +194,70 @@ public class Player extends Entity {
         if (powerAttackActive)
             attackChecked = false; // To skip attack check and to hit targets with each tick.
 
+
         playing.checkEnemyHit(attackBox);
         playing.checkObjectHit(attackBox);
         playing.getGame().getAudioPlayer().playAttackSound();
     }
 
-    // TODO: refactor this
+    private void drawCups(Graphics g, int xLvlOffset) {
+        BufferedImage cupSprite = LoadSave.GetSpriteAtlas(LoadSave.CUP_ATLAS);
+        cupImgs = new BufferedImage[ps.utils.Constants.ObjectConstants.getSpriteAmount(CUP)];
+
+        for (int i = 0; i < cupImgs.length; i++) {
+            cupImgs[i] = cupSprite.getSubimage(i * CUP_DEFAULT_WIDTH, 0, CUP_DEFAULT_WIDTH, CUP_DEFAULT_HEIGHT);
+        }
+
+        for (Projectile projectile : cups) {
+            if (projectile.isActive()) { // Rotating depends on direction
+                if (flipW == 1) {
+                    g.drawImage(cupImgs[projectile.getAnimationIndex()], (int) (projectile.getHitbox().x - xLvlOffset), (int) projectile.getHitbox().y, CUP_WIDTH, CUP_HEIGHT, null);
+                } else if (flipW == -1) {
+                    g.drawImage(cupImgs[7 - projectile.getAnimationIndex()], (int) (projectile.getHitbox().x - xLvlOffset), (int) projectile.getHitbox().y, CUP_WIDTH, CUP_HEIGHT, null);
+                }
+                // For debugging the hitbox
+                g.setColor(Color.GREEN);
+                g.drawRect((int) (projectile.getHitbox().x - xLvlOffset), (int) projectile.getHitbox().y, CUP_WIDTH, CUP_HEIGHT);
+            }
+        }
+    }
+
+    private void updateCups(int[][] lvlData) {
+        for (Projectile cups : cups) {
+            if (cups.isActive()) {
+                cups.updatePos(CUP);
+                cups.updateAnimationTick();
+                // If enemy was hit:
+                if (playing.checkEnemyHitWithCup(cups.getHitbox()) == 1) {
+                    cups.setActive(false);
+                } else if (IsProjectileHittingLevel(cups, lvlData)) {
+                    cups.setActive(false);
+                }
+            }
+        }
+    }
+
+    private void setAttackBoxOnRightSide() {
+        attackBox.x = hitbox.x + hitbox.width - (int) (Game.SCALE * 10);
+    }
+
+    private void setAttackBoxOnLeftSide() {
+        attackBox.x = hitbox.x - hitbox.width + (int) (Game.SCALE * 10);
+    }
+
     // Updating attackBox placement according to movement direction (left/right or powerAttack with flipW direction)
     private void updateAttackBox() {
-        if (right && left) { // to fix a bug with holding A & D attack hitbox goes to the right.
-            if (flipW == 1) {
-                attackBox.x = hitbox.x + hitbox.width + (int) (Game.SCALE * 10);
-            } else {
-                attackBox.x = hitbox.x - hitbox.width - (int) (Game.SCALE * 10);
-            }
-        } else if (right || (powerAttackActive && flipW == 1)) {
-            attackBox.x = hitbox.x + hitbox.width + (int) (Game.SCALE * 10);
-        } else if (left || (powerAttackActive && flipW == -1)) {
-            attackBox.x = hitbox.x - hitbox.width - (int) (Game.SCALE * 10);
-        }
-        attackBox.y = hitbox.y + (int) (Game.SCALE * 10);
+        if (right && left) {
+            if (flipW == 1)
+                setAttackBoxOnRightSide();
+            else
+                setAttackBoxOnLeftSide();
+        } else if (right || (powerAttackActive && flipW == 1))
+            setAttackBoxOnRightSide();
+        else if (left || (powerAttackActive && flipW == -1))
+            setAttackBoxOnLeftSide();
+
+        attackBox.y = hitbox.y + (Game.SCALE * 7);
     }
 
     private void updatePowerBar() {
@@ -195,10 +280,11 @@ public class Player extends Entity {
         graphics.drawImage(
                 animations[state][animationIndex],
                 (int) (hitbox.x - xDrawOffset) - lvlOffset + flipX,
-                (int) (hitbox.y - yDrawOffset),
+                (int) (hitbox.y - yDrawOffset) + (int) (pushDrawOffset),
                 width * flipW, height, null);
         drawHitbox(graphics, lvlOffset);
         drawAttackBox(graphics, lvlOffset);
+        drawCups(graphics, lvlOffset);
         drawUI(graphics);
     }
 
@@ -214,10 +300,101 @@ public class Player extends Entity {
         // Power bar
         g.setColor(Color.yellow);
         g.fillRect(powerBarXStart + statusBarX, powerBarYStart + statusBarY, powerWidth, powerBarHeight); // powerWidth not powerBarWidth to make it able to shrink or expand according to current values
+
+        // Info:
+        g.drawString("animationIndex: " + animationIndex, Game.GAME_WIDTH - 150, 10);
+        g.drawString("animationTick: " + animationTick, Game.GAME_WIDTH - 150, 20);
+        g.drawString("isThrowingCups: " + throwingCups, Game.GAME_WIDTH - 150, 30);
+        g.drawString("isAttacking: " + attacking, Game.GAME_WIDTH - 150, 40);
+        g.drawString("State: " + state, Game.GAME_WIDTH - 150, 50);
+        g.drawString("PlayerX: " + this.getHitbox().x, Game.GAME_WIDTH - 150, 60);
+        g.drawString("maxLvLOffset: " + playing.getMaxLvlOffsetX(), Game.GAME_WIDTH - 150, 70);
+        g.drawString("rightBorder: " + playing.getRightBorder(), Game.GAME_WIDTH - 150, 80);
+        g.drawString("xLvlOffset: " + playing.getxLvlOffset(), Game.GAME_WIDTH - 150, 90);
+        g.drawString("Game Width: " + playing.totalLvlWidth(), Game.GAME_WIDTH - 150, 100);
+        g.drawString("HitBox width: " + hitbox.width, Game.GAME_WIDTH - 150, 110);
+
+    }
+
+    // for running through massive of sprites with determined speed
+    private void updateAnimationTick() {
+        animationTick++;  // animationTick is a counter of frames. It gets incremented till specified animationSpeed threshold.
+        if (animationTick >= ANI_SPEED) { // Animation index goes 0-1-2-3... till the constant of specified animation and then -0-1-2-3...
+            animationTick = 0;
+            animationIndex++;
+            // When we are reaching the end of sprite animation resetting it to 0.
+            if (animationIndex >= getSpriteAmount(state)) {
+                animationIndex = 0;
+                attacking = false; // to attack just once (can be possibly exchanged by setting attacking to false in KeyboardInputs)
+                throwingCups = false;
+                attackChecked = false;
+                if (state == HIT) {
+                    newState(IDLE);
+                    airSpeed = 0f;
+                    if (!isFloor(hitbox, 0, lvlData))
+                        inAir = true;
+                }
+            }
+        }
+    }
+
+    private void setAnimation() {
+        int startAnimation = state; // Remember what current animation is before checking is there a switch.
+
+        if (state == HIT)
+            return;
+
+        if (moving) {
+            state = RUNNING;
+        } else {
+            state = IDLE;
+        }
+
+        if (inAir) {
+            if (airSpeed < 0)
+                state = JUMPING;
+            else
+                state = FALLING;
+        }
+
+        // Will be the same animation throughout entire power attack.
+        if (powerAttackActive) {
+            state = ATTACK;
+            animationIndex = 1;
+            animationTick = 0;
+            return;
+        }
+
+        if (attacking) {
+            state = ATTACK;
+            if (startAnimation != ATTACK) { // Shortening animation for faster response on mouse click.
+                animationIndex = 1; // starting skipping first sprite.
+                animationTick = 0;
+                return;
+            }
+        }
+
+        if (throwingCups) {
+            state = THROWING;
+            if (startAnimation != THROWING) { // Shortening animation for faster response on mouse click.
+                animationIndex = 0; // starting skipping first sprite.
+                animationTick = 0;
+                return;
+            }
+        }
+
+        if (startAnimation != state) { // If there is a new animation was set.
+            resetAnimationTick(); // We're reseting animation, so it can start from the begining.
+        }
+    }
+
+    private void resetAnimationTick() {
+        animationTick = 0;
+        animationIndex = 0;
     }
 
     // Updating position so, that we can hold two keys and run diagonally or stop moving at all.
-    // Also checking, whether it's possible to go in chosen direction.
+    // Also checking, whether it's possible to go in a chosen direction.
     // Moving now depends on hitbox of a player (20x28), not a player original sprite size (64x40).
     private void updatePosition() {
         moving = false; // false by default
@@ -234,7 +411,7 @@ public class Player extends Entity {
 
         if (left && !right) {
             xSpeed -= walkSpeed;
-            flipX = width;
+            flipX = width + (int) Game.SCALE * 4;
             flipW = -1;
         }
         if (right && !left) {
@@ -307,13 +484,28 @@ public class Player extends Entity {
 
     // Method, that not allow health to exceed limits (<0 or >100)
     public void changeHealth(int value) {
+        if (value < 0) {
+            if (state == HIT)
+                return;
+            else
+                newState(HIT);
+        }
         currentHealth += value;
+        currentHealth = Math.max(Math.min(currentHealth, maxHealth), 0);
+    }
 
-        if (currentHealth <= 0) {
-            currentHealth = 0;
-            // TODO: gameOver();
-        } else if (currentHealth >= maxHealth)
-            currentHealth = maxHealth;
+    // Method for pushback direction
+    public void changeHealth(int value, Enemy e) {
+        if (state == HIT)
+            return;
+        changeHealth(value);
+        pushBackOffsetDir = UP;
+        pushDrawOffset = 0;
+
+        if (e.getHitbox().x < hitbox.x)
+            pushBackDir = RIGHT;
+        else
+            pushBackDir = LEFT;
     }
 
 
@@ -329,76 +521,26 @@ public class Player extends Entity {
             powerValue = 0;
     }
 
-    private void setAnimation() {
-        int startAnimation = state; // Remember what current animation is before checking is there a switch.
-
-        if (moving) {
-            state = RUNNING;
-        } else {
-            state = IDLE;
-        }
-
-        if (inAir) {
-            if (airSpeed < 0)
-                state = JUMPING;
-            else
-                state = FALLING;
-        }
-
-        // Will be the same animation throughout entire power attack.
-        if (powerAttackActive) {
-            state = ATTACK;
-            animationIndex = 1;
-            animationTick = 0;
-            return;
-        }
-
-        if (attacking) {
-            state = ATTACK;
-            if (startAnimation != ATTACK) { // Shortening animation for faster response on mouse click.
-                animationIndex = 1; // starting skipping first sprite.
-                animationTick = 0;
-                return;
-            }
-        }
-
-        if (startAnimation != state) { // If there is a new animation was set.
-            resetAnimationTick(); // We're reseting animation, so it can start from the begining.
-        }
-    }
-
-    private void resetAnimationTick() {
-        animationTick = 0;
-        animationIndex = 0;
-    }
 
     public void setAttacking(boolean isAttacking) {
+        // Not to glitch when pressed both
         this.attacking = isAttacking;
+        this.throwingCups = !isAttacking;
     }
 
-
-    // for running through massive of sprites with determined speed
-    private void updateAnimationTick() {
-        animationTick++;  // animationTick is a counter of frames. It gets incremented till specified animationSpeed threshold.
-        if (animationTick >= ANI_SPEED) { // Animation index goes 0-1-2-3... till the constant of specified animation and then -0-1-2-3...
-            animationTick = 0;
-            animationIndex++;
-            //
-            if (animationIndex >= getSpriteAmount(state)) {
-                animationIndex = 0;
-                attacking = false; // to attack just once (can be possibly exchanged by setting attacking to false in KeyboardInputs)
-                attackChecked = false;
-            }
-        }
-
+    public void setThrowingCups(boolean isThrowingCups) {
+        // Not to glitch when pressed both
+        this.attacking = !isThrowingCups;
+        this.throwingCups = isThrowingCups;
     }
+
 
     // Actually it "cuts" specified sprites image into subimages and puts them into animations[][] massive.
     private void loadAnimations() {
 
         BufferedImage img = LoadSave.GetSpriteAtlas(LoadSave.PLAYER_ATLAS); // Getting an animation atlas of player.
 
-        animations = new BufferedImage[7][8]; // depends on player_sprites animation entities/samples
+        animations = new BufferedImage[8][8]; // depends on player_sprites animation entities/samples
 
         for (int j = 0; j < animations.length; j++) {
             for (int i = 0; i < animations[j].length; i++) {
@@ -445,6 +587,7 @@ public class Player extends Entity {
         resetDirectionBooleans();
         inAir = false;
         attacking = false;
+        throwingCups = false;
         moving = false;
         airSpeed = 0f; // Added due to bug. When in jump and restart continue jump.
         state = IDLE;
@@ -461,9 +604,9 @@ public class Player extends Entity {
 
     private void resetAttackBox() {
         if (flipW == 1) {
-            attackBox.x = hitbox.x + hitbox.width + (int) (Game.SCALE * 10);
+            attackBox.x = hitbox.x + hitbox.width - (int) (Game.SCALE * 10);
         } else {
-            attackBox.x = hitbox.x - hitbox.width - (int) (Game.SCALE * 10);
+            attackBox.x = hitbox.x - hitbox.width + (int) (Game.SCALE * 10);
         }
     }
 
@@ -479,6 +622,11 @@ public class Player extends Entity {
             powerAttackActive = true;
             changePower(-60);
         }
+    }
+
+
+    public boolean isAttacking() {
+        return attacking;
     }
 }
 

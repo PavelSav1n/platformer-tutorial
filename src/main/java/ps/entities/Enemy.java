@@ -1,11 +1,11 @@
 package ps.entities;
 
+import ps.gamestates.Playing;
 import ps.main.Game;
 
 import java.awt.geom.Rectangle2D;
 
-import static ps.utils.Constants.Directions.LEFT;
-import static ps.utils.Constants.Directions.RIGHT;
+import static ps.utils.Constants.Directions.*;
 import static ps.utils.Constants.EnemyConstants.*;
 import static ps.utils.Constants.*;
 import static ps.utils.HelpMethods.*;
@@ -20,6 +20,7 @@ public abstract class Enemy extends Entity {
     protected float attackDistance = Game.TILES_SIZE;
     protected boolean active = true;
     protected boolean attackChecked;
+    protected int attackBoxOffsetX;
 
 
     public Enemy(float x, float y, int width, int height, int enemyType) {
@@ -45,6 +46,15 @@ public abstract class Enemy extends Entity {
             inAir = false;
             hitbox.y = getEntityYPosUnderRoofOrAboveFloor(hitbox, airSpeed);
             tileY = (int) hitbox.y / Game.TILES_SIZE; // when the enemy hits floor it's Y never change
+        }
+    }
+
+    protected void inAirChecks(int[][] lvlData, Playing playing) {
+        if (state != HIT && state != DEAD) {
+            updateInAir(lvlData);
+            playing.getObjectManager().checkSpikesTouched(this);
+            if (IsEntityInWater(hitbox, lvlData))
+                hurt(maxHealth);
         }
     }
 
@@ -110,13 +120,20 @@ public abstract class Enemy extends Entity {
         currentHealth -= amount;
         if (currentHealth <= 0)
             newState(DEAD);
-        else
+        else {
             newState(HIT);
+            if (walkDir == LEFT)
+                pushBackDir = RIGHT;
+            else
+                pushBackDir = LEFT;
+            pushBackOffsetDir = UP;
+            pushDrawOffset = 0;
+        }
     }
 
-    protected void checkEnemyHit(Rectangle2D.Float attackBox, Player player) {
+    protected void checkPlayerHit(Rectangle2D.Float attackBox, Player player) {
         if (attackBox.intersects(player.hitbox))
-            player.changeHealth(-getEnemyDmg(enemyType));
+            player.changeHealth(-getEnemyDmg(enemyType), this);
         attackChecked = true;
     }
 
@@ -133,6 +150,26 @@ public abstract class Enemy extends Entity {
                 }
             }
         }
+    }
+
+    protected void updateAttackBox() {
+        attackBox.x = hitbox.x - attackBoxOffsetX;
+        attackBox.y = hitbox.y;
+    }
+
+    protected void updateAttackBoxFlip() {
+        if (walkDir == RIGHT)
+            attackBox.x = hitbox.x + hitbox.width;
+        else
+            attackBox.x = hitbox.x - attackBoxOffsetX;
+
+        attackBox.y = hitbox.y;
+    }
+
+    // Offset is needed to center attack box relative to hitbox.
+    protected void initAttackBox(int w, int h, int attackBoxOffsetX) {
+        attackBox = new Rectangle2D.Float(x, y, (int) (w * Game.SCALE), (int) (h * Game.SCALE));
+        this.attackBoxOffsetX = (int) (Game.SCALE * attackBoxOffsetX);
     }
 
     protected void changeWalkDir() {
@@ -156,4 +193,24 @@ public abstract class Enemy extends Entity {
         airSpeed = 0;
 
     }
+
+    // We're flipping X because we need to keep sprite centered, so X from topleft goes to topright on the distance of width of sprite.
+    public int flipX() {
+        if (walkDir == LEFT)
+            return width;
+        else
+            return 0;
+    }
+
+    public int flipW() {
+        if (walkDir == LEFT)
+            return -1;
+        else
+            return 1;
+    }
+
+    public float getPushDrawOffset() {
+        return pushDrawOffset;
+    }
+
 }

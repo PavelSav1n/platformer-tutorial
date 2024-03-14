@@ -15,8 +15,8 @@ import static ps.utils.Constants.EnemyConstants.*;
 public class EnemyManager {
 
     private Playing playing;
-    private BufferedImage[][] crabbyArr;
-    private ArrayList<Crabby> crabbies = new ArrayList<>();
+    private BufferedImage[][] omonArr;
+    private ArrayList<Omon> omons = new ArrayList<>();
 
     public EnemyManager(Playing playing) {
         this.playing = playing;
@@ -25,72 +25,97 @@ public class EnemyManager {
     }
 
     public void loadEnemies(Level level) {
-        crabbies = level.getCrabs(); // getting crabbies list from level class.
+        omons = level.getOmons(); // getting OMON list from level class.
     }
 
-    public void update(int[][] lvlData, Player player) {
+    // Just a way to update each element in ArrayList<Omon> (real OMON objs)
+    public void update(int[][] lvlData) {
         boolean isAnyActive = false;
-        for (Crabby crabby : crabbies) {
-            if (crabby.isActive()) {// If DEAD, not going to update
-                crabby.update(lvlData, player);
+        for (Omon omon : omons) {
+            if (omon.isActive()) {// If DEAD, not going to update
+                omon.update(lvlData, playing);
                 isAnyActive = true;
             }
-        }// Just a peculiar way to update each element in ArrayList<Crabby> (real crab objs)
+        }
+        // If we want to GAME OVER when there are no more enemies.
         if (!isAnyActive)
-            playing.setLevelCompleted(true);
+//            playing.setLevelCompleted(true);
+            System.out.println("All enemies down.");
     }
 
     public void draw(Graphics g, int xLvlOffset) {
-        drawCrabs(g, xLvlOffset);
+        drawOmon(g, xLvlOffset);
     }
 
-    // To draw real crab objs we need to know what state and what aniIndex we're drawing.
-    // X if offseted by 1 -- lvl movement, 2 -- hitbox offset to fit sprites in hitbox, 3 -- flipX when they are walking in RIGHT direction
-    // width is multiplied by -1 when crabbies go RIGHT.
-    private void drawCrabs(Graphics g, int xLvlOffset) {
-        for (Crabby crabby : crabbies) {
-            if (crabby.isActive()) {
-                g.drawImage(
-                        crabbyArr[crabby.getState()][crabby.getAniIndex()],
-                        (int) crabby.getHitbox().x - xLvlOffset - CRABBY_DRAWOFFSET_X + crabby.flipX(),
-                        (int) crabby.getHitbox().y - CRABBY_DRAWOFFSET_Y,
-                        CRABBY_WIDTH * crabby.flipW(), CRABBY_HEIGHT, null);
-                crabby.drawHitbox(g, xLvlOffset);
-                crabby.drawAttackBox(g, xLvlOffset);
+    // To draw real OMON objs we need to know what state and what aniIndex we're drawing.
+    // X if offseted by 1 -- lvl movement, 2 -- hitbox offset to fit sprites in hitbox, 3 -- flipX when they are walking in LEFT direction
+    // width is multiplied by -1 when OMON go LEFT.
+    private void drawOmon(Graphics g, int xLvlOffset) {
+        for (Omon omon : omons) {
+            if (omon.isActive()) {
+                if (omon.state == DEAD) { // This check is needed because I don't need death animation to flipX
+                    g.drawImage(
+                            omonArr[omon.getState()][omon.getAniIndex()],
+                            (int) omon.getHitbox().x - xLvlOffset - OMON_DRAWOFFSET_X,
+                            (int) omon.getHitbox().y - OMON_DRAWOFFSET_Y + (int) omon.getPushDrawOffset(),
+                            OMON_WIDTH, OMON_HEIGHT, null);
+
+                    omon.drawHitbox(g, xLvlOffset);
+                    omon.drawAttackBox(g, xLvlOffset);
+                } else
+                    g.drawImage( // This is universal approach
+                            omonArr[omon.getState()][omon.getAniIndex()],
+                            (int) omon.getHitbox().x - xLvlOffset - OMON_DRAWOFFSET_X + omon.flipX(),
+                            (int) omon.getHitbox().y - OMON_DRAWOFFSET_Y + (int) omon.getPushDrawOffset(),
+                            OMON_WIDTH * omon.flipW(), OMON_HEIGHT, null);
+                omon.drawHitbox(g, xLvlOffset);
+                omon.drawAttackBox(g, xLvlOffset);
             }
         }
     }
 
-    // Player damage to Crabbies
-    public void checkEnemyHit(Rectangle2D.Float attackBox) {
-        for (Crabby crabby : crabbies) {
-            if (crabby.getCurrentHealth() > 0) // Without this check dead crab stays in death animation while we're hitting him.
-                if (crabby.isActive()) {
-                    if (attackBox.intersects(crabby.getHitbox())) {
-                        crabby.hurt(10);
-                        return;
+    // Player damage to Enemies with a stick:
+    public int checkEnemyHit(Rectangle2D.Float attackBox) {
+        for (Omon omon : omons) {
+            if (omon.getCurrentHealth() > 0) // Without this check dead enemy stays in death animation while we're hitting him.
+                if (omon.isActive()) {
+                    if (attackBox.intersects(omon.getHitbox())) {
+                        omon.hurt(10);
+                        return 1;
                     }
                 }
         }
+        return 0;
+    }
 
+    // Player damage with a plastic cup:
+    public int checkEnemyHitWithCup(Rectangle2D.Float attackBox) {
+        for (Omon omon : omons) {
+            if (omon.getCurrentHealth() > 0) // Without this check dead enemy stays in death animation while we're hitting him.
+                if (omon.isActive()) {
+                    if (attackBox.intersects(omon.getHitbox())) {
+                        omon.hurt(100);
+                        return 1;
+                    }
+                }
+        }
+        return 0;
     }
 
     private void loadEnemyImgs() {
-        crabbyArr = new BufferedImage[5][9];
-        BufferedImage temp = LoadSave.GetSpriteAtlas(LoadSave.CRABBY_SPRITE);
+        omonArr = new BufferedImage[7][8];
+        BufferedImage temp = LoadSave.GetSpriteAtlas(LoadSave.OMON_SPRITE);
 
-        for (int i = 0; i < crabbyArr.length; i++) {
-            for (int j = 0; j < crabbyArr[i].length; j++) {
-                crabbyArr[i][j] = temp.getSubimage(j * CRABBY_WIDTH_DEFAULT, i * CRABBY_HEIGHT_DEFAULT, CRABBY_WIDTH_DEFAULT, CRABBY_HEIGHT_DEFAULT);
-
+        for (int i = 0; i < omonArr.length; i++) {
+            for (int j = 0; j < omonArr[i].length; j++) {
+                omonArr[i][j] = temp.getSubimage(j * OMON_WIDTH_DEFAULT, i * OMON_HEIGHT_DEFAULT, OMON_WIDTH_DEFAULT, OMON_HEIGHT_DEFAULT);
             }
-
         }
     }
 
     public void resetAllEnemies() {
-        for (Crabby crabby : crabbies) {
-            crabby.resetEnemy();
+        for (Omon omon : omons) {
+            omon.resetEnemy();
         }
     }
 }

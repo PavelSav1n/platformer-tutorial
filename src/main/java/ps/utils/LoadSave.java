@@ -11,7 +11,7 @@ public class LoadSave {
 
     public static final String PLAYER_ATLAS = "player_sprites.png";
     public static final String LEVEL_ATLAS = "outside_sprites.png";
-    //    public static final String LEVEL_ONE_DATA = "level_one_data.png"; // each pixel of this file represents an entity of a game (blocks, enemies, objects, etc)
+    //    public static final String LEVEL_ONE_DATA = "level_one_data.png";
 //    public static final String LEVEL_ONE_DATA = "level_one_data_long.png";
     public static final String MENU_BUTTONS = "button_atlas.png";
     public static final String MENU_BACKGROUND = "menu_background.png"; // bg plate of menu
@@ -23,7 +23,8 @@ public class LoadSave {
     public static final String PLAYING_BG_IMG = "playing_bg_img.png"; // bg for lvl1
     public static final String BIG_CLOUDS = "big_clouds.png";
     public static final String SMALL_CLOUDS = "small_clouds.png";
-    public static final String CRABBY_SPRITE = "crabby_sprite.png";
+    public static final String MOUNTAIN = "mountain.png";
+    public static final String OMON_SPRITE = "omon_sprite.png";
     public static final String STATUS_BAR = "health_power_bar.png";
     public static final String COMPLETED_IMG = "completed_sprite.png";
     public static final String POTION_ATLAS = "potions_sprites.png";
@@ -31,8 +32,16 @@ public class LoadSave {
     public static final String TRAP_ATLAS = "trap_atlas.png";
     public static final String CANNON_ATLAS = "CANNON_atlas.png";
     public static final String CANNON_BALL = "ball.png";
+    public static final String CUP = "cup.png";
+    public static final String CUP_ATLAS = "cup_sprites.png";
     public static final String DEATH_SCREEN = "death_screen.png";
     public static final String OPTIONS_MENU = "options_background.png";
+    public static final String WATER_TOP = "water_atlas_animation.png";
+    public static final String WATER_BOTTOM = "water.png";
+    public static final String GRASS_ATLAS = "grass_atlas.png";
+    public static final String TREE_ONE_ATLAS = "tree_one_atlas.png";
+    public static final String TREE_TWO_ATLAS = "tree_two_atlas.png";
+
 
     public static BufferedImage GetSpriteAtlas(String fileName) {
         BufferedImage img = null;
@@ -56,6 +65,8 @@ public class LoadSave {
     }
 
     // Returns imgs array of all lvl sprites in url's folder
+    // Each pixel of this lvl files represents an entity of a game (blocks, enemies, objects, etc)
+    // Sorting is occurring in Level class.
     public static BufferedImage[] getAllLevels() {
         URL url = LoadSave.class.getResource("/lvls");
         File file = null;
