@@ -39,8 +39,17 @@ public class LoadSave {
     public static final String WATER_TOP = "water_atlas_animation.png";
     public static final String WATER_BOTTOM = "water.png";
     public static final String GRASS_ATLAS = "grass_atlas.png";
-    public static final String TREE_ONE_ATLAS = "tree_one_atlas.png";
-    public static final String TREE_TWO_ATLAS = "tree_two_atlas.png";
+
+    public static final String TREE_ONE_ATLAS = "environment.tree_1_atlas.png";
+    public static final String BUSHES_ATLAS = "environment.bushes_atlas.png";
+    public static final String FLAG_GEORGIA_ATLAS = "environment.flag_georgia_atlas.png";
+
+    public static final String EXCLAMATION_0_ATLAS = "exclamation_0_atlas.png";
+    public static final String EXCLAMATION_1_ATLAS = "exclamation_1_atlas.png";
+
+    public static final String BORDER_POST = "environment.border_post.png";
+    public static final String SIGN_LARS = "environment.sign_lars.png";
+
 
 
     public static BufferedImage GetSpriteAtlas(String fileName) {

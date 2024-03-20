@@ -1,5 +1,6 @@
 package ps.gamestates;
 
+import ps.effects.DialogueEffect;
 import ps.entities.EnemyManager;
 import ps.entities.Player;
 import ps.levels.LevelManager;
@@ -15,8 +16,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Random;
 
+import static ps.utils.Constants.Dialogue.*;
 import static ps.utils.Constants.Environment.*;
 
 public class Playing extends State implements StateMethods {
@@ -44,6 +47,9 @@ public class Playing extends State implements StateMethods {
     private boolean levelCompleted;
     private boolean playerDying = false;
 
+    private BufferedImage[] questionImgs, exclamationImgs;
+    private ArrayList<DialogueEffect> dialogEffects = new ArrayList<>();
+
 
     public Playing(Game game) {
         super(game);
@@ -57,14 +63,45 @@ public class Playing extends State implements StateMethods {
         for (int i = 0; i < smallCloudsPos.length; i++) {
             smallCloudsPos[i] = (int) (90 * Game.SCALE) + rnd.nextInt((int) (200 * Game.SCALE)); // we got here from 50 to 100 at least.
         }
+        loadDialogue();
         calcLvlOffset();
         loadStartLevel();
+    }
+
+    private void loadDialogue() {
+        loadDialogueImgs();
+
+        // Load dialogue array with premade objects, that gets activated when needed.
+        // This is a simple
+        // way of avoiding ConcurrentModificationException error. (Adding to a list that
+        // is being looped through.
+
+        for (int i = 0; i < 20; i++)
+            dialogEffects.add(new DialogueEffect(0, 0, EXCLAMATION_1));
+        for (int i = 0; i < 20; i++)
+            dialogEffects.add(new DialogueEffect(0, 0, EXCLAMATION_0));
+
+        for (DialogueEffect de : dialogEffects)
+            de.deactive();
+    }
+
+    private void loadDialogueImgs() {
+        BufferedImage qtemp = LoadSave.GetSpriteAtlas(LoadSave.EXCLAMATION_0_ATLAS);
+        questionImgs = new BufferedImage[5];
+        for (int i = 0; i < questionImgs.length; i++) {
+            questionImgs[i] = qtemp.getSubimage(i * 14, 0, 14, 12);
+        }
+
+        BufferedImage etemp = LoadSave.GetSpriteAtlas(LoadSave.EXCLAMATION_1_ATLAS);
+        exclamationImgs = new BufferedImage[GetSpriteAmount(EXCLAMATION_1)];
+        for (int i = 0; i < exclamationImgs.length; i++) {
+            exclamationImgs[i] = etemp.getSubimage(i * DIALOGUE_WIDTH_DEFAULT, 0, DIALOGUE_WIDTH_DEFAULT, DIALOGUE_HEIGHT_DEFAULT);
+        }
     }
 
     public void setMaxLvlOffsetX(int maxLvlOffsetX) {
         this.maxLvlOffsetX = maxLvlOffsetX;
     }
-
 
     public void loadNextLevel() {
         levelManager.loadNextLevel();
@@ -122,6 +159,7 @@ public class Playing extends State implements StateMethods {
         } else if (playerDying) {
             player.update();
         } else {
+            updateDialogue();
             levelManager.update();
             objectManager.update(levelManager.getCurrentLevel().getLevelData(), player);
             enemyManager.update(levelManager.getCurrentLevel().getLevelData()); // To manage lvl data like solid blocks and cliffs inside Enemy class (updateMove() method)
@@ -130,6 +168,34 @@ public class Playing extends State implements StateMethods {
         }
     }
 
+    private void updateDialogue() {
+        for (DialogueEffect de : dialogEffects)
+            if (de.isActive())
+                de.update();
+    }
+
+    private void drawDialogue(Graphics g, int xLvlOffset) {
+        for (DialogueEffect de : dialogEffects)
+            if (de.isActive()) {
+                if (de.getType() == EXCLAMATION_0)
+                    g.drawImage(questionImgs[de.getAniIndex()], de.getX() - xLvlOffset, de.getY(), DIALOGUE_WIDTH, DIALOGUE_HEIGHT, null);
+                else
+                    g.drawImage(exclamationImgs[de.getAniIndex()], de.getX() - xLvlOffset, de.getY(), DIALOGUE_WIDTH, DIALOGUE_HEIGHT, null);
+            }
+    }
+
+    public void addDialogue(int x, int y, int type) {
+        // Not adding a new one, we are recycling. #ThinkGreen lol
+        dialogEffects.add(new DialogueEffect(x, y - (int) (Game.SCALE * 15), type));
+        for (DialogueEffect de : dialogEffects)
+            if (!de.isActive())
+                if (de.getType() == type) {
+                    de.reset(x, -(int) (Game.SCALE * 15));
+                    return;
+                }
+    }
+
+    // LEVEL COMPLETE here.
     private void checkCloseToBorder() {
         int playerX = (int) player.getHitbox().x;
         int diff = playerX - xLvlOffset;
@@ -145,8 +211,8 @@ public class Playing extends State implements StateMethods {
         if (xLvlOffset < 0)
             xLvlOffset = 0;
 
-        // Completing level when reaching its right border:
-        if (player.getHitbox().x >= totalLvlWidth() - player.getHitbox().width - 1) {
+        // Completing level when reaching its right border minus 6 tiles:
+        if (player.getHitbox().x >= totalLvlWidth() - player.getHitbox().width - 6 * (Game.TILES_DEFAULT_SIZE * Game.SCALE)) {
             setLevelCompleted(true);
         }
 
@@ -163,6 +229,7 @@ public class Playing extends State implements StateMethods {
         enemyManager.draw(graphics, xLvlOffset);
         objectManager.draw(graphics, xLvlOffset);
         objectManager.drawBackgroundTrees(graphics, xLvlOffset);
+        drawDialogue(graphics, xLvlOffset);
 
         if (paused) {
             graphics.setColor(new Color(0, 0, 0, 150)); // Semi transparent black.
@@ -188,7 +255,7 @@ public class Playing extends State implements StateMethods {
 
     private void drawMountains(Graphics g) {
         for (int i = 0; i < 5; i++) {
-            g.drawImage(mountain, i * MOUNTAIN_WIDTH - (int) (xLvlOffset * 0.1), (int) (204 * Game.SCALE), MOUNTAIN_WIDTH, MOUNTAIN_HEIGHT, null);
+            g.drawImage(mountain, i * MOUNTAIN_WIDTH - (int) (xLvlOffset * 0.1), (int) (140 * Game.SCALE), MOUNTAIN_WIDTH, MOUNTAIN_HEIGHT, null);
         }
     }
 

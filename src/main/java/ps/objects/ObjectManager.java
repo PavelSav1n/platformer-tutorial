@@ -13,6 +13,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import static ps.utils.Constants.ObjectConstants.*;
+import static ps.utils.Constants.ObjectConstants.GetEnvObjDefaultHeight;
 import static ps.utils.Constants.Projectiles.*;
 import static ps.utils.HelpMethods.canCannonSeePlayer;
 import static ps.utils.HelpMethods.IsProjectileHittingLevel;
@@ -30,7 +31,7 @@ import static ps.utils.HelpMethods.IsProjectileHittingLevel;
 public class ObjectManager {
 
     private Playing playing;
-    private BufferedImage[][] potionImgs, containerImgs, treeImgs;
+    private BufferedImage[][] potionImgs, containerImgs, environmentImgs;
     private BufferedImage[] cannonImg, grassImgs;
     private BufferedImage spikeImg, cannonBallImg;
     private ArrayList<Potion> potions;
@@ -38,7 +39,7 @@ public class ObjectManager {
     private ArrayList<Spike> spikes;
     private ArrayList<Cannon> cannons;
     private ArrayList<Projectile> projectiles = new ArrayList<>(); // each time a cannon shoots, we'll be adding balls to this array list.
-    private ArrayList<BackgroundTree> trees = new ArrayList<>();
+    private ArrayList<AnimatedEnvironment> trees = new ArrayList<>();
     private ArrayList<Grass> grass = new ArrayList<>();
 
     private Level currentLevel;
@@ -141,16 +142,19 @@ public class ObjectManager {
         cannonBallImg = LoadSave.GetSpriteAtlas(LoadSave.CANNON_BALL);
 
 
-        // Loading trees and bushes:
-        treeImgs = new BufferedImage[2][6];
-        BufferedImage treeOneImg = LoadSave.GetSpriteAtlas(LoadSave.TREE_ONE_ATLAS);
-        for (int i = 0; i < 6; i++) {
-            treeImgs[0][i] = treeOneImg.getSubimage(i * 58, 0, 58, 73);
-            System.out.println("treeImgs[0][i] = " + treeImgs[0][i]);
-        }
-        BufferedImage treeTwoImg = LoadSave.GetSpriteAtlas(LoadSave.TREE_TWO_ATLAS);
+        // Loading trees, bushes and flag:
+        environmentImgs = new BufferedImage[3][7];
+        BufferedImage tree = LoadSave.GetSpriteAtlas(LoadSave.TREE_ONE_ATLAS);
         for (int i = 0; i < 6; i++)
-            treeImgs[1][i] = treeTwoImg.getSubimage(i * 58, 0, 58, 40);
+            environmentImgs[0][i] = tree.getSubimage(i * GetEnvObjDefaultWidth(TREE), 0, GetEnvObjDefaultWidth(TREE), GetEnvObjDefaultHeight(TREE));
+
+        BufferedImage bush = LoadSave.GetSpriteAtlas(LoadSave.BUSHES_ATLAS);
+        for (int i = 0; i < 6; i++)
+            environmentImgs[1][i] = bush.getSubimage(i * GetEnvObjDefaultWidth(BUSH), 0, GetEnvObjDefaultWidth(BUSH), GetEnvObjDefaultHeight(BUSH));
+
+        BufferedImage flagGeorgia = LoadSave.GetSpriteAtlas(LoadSave.FLAG_GEORGIA_ATLAS);
+        for (int i = 0; i < 7; i++)
+            environmentImgs[2][i] = flagGeorgia.getSubimage(i * GetEnvObjDefaultWidth(FLAG_GEORGIA), 0, GetEnvObjDefaultWidth(FLAG_GEORGIA), GetEnvObjDefaultHeight(FLAG_GEORGIA));
 
         // Loading grass:
         BufferedImage grassTemp = LoadSave.GetSpriteAtlas(LoadSave.GRASS_ATLAS);
@@ -161,7 +165,7 @@ public class ObjectManager {
     }
 
     public void update(int[][] lvlData, Player player) {
-        updateBackgroundTrees();
+        updateAnimatedEnvironment();
 
         for (Potion potion : potions) {
             if (potion.isActive())
@@ -176,9 +180,9 @@ public class ObjectManager {
         updateProjectiles(lvlData, player);
     }
 
-    private void updateBackgroundTrees() {
-        for (BackgroundTree bt : currentLevel.getTrees())
-            bt.update();
+    private void updateAnimatedEnvironment() {
+        for (AnimatedEnvironment ae : currentLevel.getTrees())
+            ae.update();
     }
 
     private void updateProjectiles(int[][] lvlData, Player player) {
@@ -198,10 +202,10 @@ public class ObjectManager {
 
 
     /* if the cannon is not animating
-     * tileY is same
+     * tileY is the same
      * ifPlayer is in range
      * is player in front of cannon
-     * lin of sight
+     * line of sight
      * shoot the cannon
      */
     private void updateCannons(int[][] lvlData, Player player) {
@@ -233,10 +237,13 @@ public class ObjectManager {
 
     private boolean isPlayerInfrontOfCannon(Cannon cannon, Player player) {
         if (cannon.getObjType() == CANNON_LEFT) {
-            if (player.getHitbox().x < cannon.getHitbox().x)
+            if (player.getHitbox().x < cannon.getHitbox().x) {
                 return true;
-        } else if (player.getHitbox().x > cannon.getHitbox().x) {
-            return true;
+            }
+        } else {
+            if (player.getHitbox().x > cannon.getHitbox().x) {
+                return true;
+            }
         }
         return false;
     }
@@ -268,17 +275,17 @@ public class ObjectManager {
     }
 
     public void drawBackgroundTrees(Graphics g, int xLvlOffset) {
-        for (BackgroundTree bt : currentLevel.getTrees()) {
+        for (AnimatedEnvironment bt : currentLevel.getTrees()) {
 
             int type = bt.getType();
-            if (type == 9)
-                type = 8;
+//            if (type == 9)
+//                type = 8;
             g.drawImage(
-                    treeImgs[type - 7][bt.getAniIndex()],
+                    environmentImgs[type - 7][bt.getAniIndex()],
                     bt.getX() - xLvlOffset + GetTreeOffsetX(bt.getType()),
                     (int) (bt.getY() + GetTreeOffsetY(bt.getType())),
-                    GetTreeWidth(bt.getType()),
-                    GetTreeHeight(bt.getType()), null);
+                    GetEnvObjWidth(bt.getType()),
+                    GetEnvObjHeight(bt.getType()), null);
         }
     }
 

@@ -94,8 +94,8 @@ public class HelpMethods {
     public static boolean IsEntityInWater(Rectangle2D.Float hitbox, int[][] lvlData) {
         // Will only check if entity touch top water. Can't reach bottom water if not
         // touched top water.
-        if (GetTileValue(hitbox.x, hitbox.y + hitbox.height, lvlData) != 48)
-            if (GetTileValue(hitbox.x + hitbox.width, hitbox.y + hitbox.height, lvlData) != 48)
+        if (GetTileValue(hitbox.x, hitbox.y + hitbox.height, lvlData) != 58)
+            if (GetTileValue(hitbox.x + hitbox.width, hitbox.y + hitbox.height, lvlData) != 58)
                 return false;
         return true;
     }
@@ -109,9 +109,13 @@ public class HelpMethods {
     public static boolean isTileSolid(int xTile, int yTile, int[][] lvlData) {
         int value = lvlData[yTile][xTile];
 
-        // We have only 49 tiles, so checking that and 11th tile is void tile, so we can pass through.
+        // We have only TEXTURE_MAX_AMOUNT tiles, so checking that and 11th tile is void tile, so we can pass through.
+        // 48 & 49 tile is a tunnel,
+        // 58 & 59 is a water
+        // 60 is a BorderPost
+        // 61 is a sign
         switch (value) {
-            case 11, 48, 49 -> {
+            case 11, 48, 49, 58, 59, 60, 61 -> {
                 return false;
             }
             default -> {
@@ -132,39 +136,47 @@ public class HelpMethods {
 
     }
 
-    // If all tiles from 1 point to 2 point is not solid
+    // If all tiles from xStart point to xEnd point is not solid
+    // CHECKED
     public static boolean isAllTilesClear(int xStart, int xEnd, int y, int[][] lvlData) {
         for (int i = 0; i < xEnd - xStart; i++)
-            if (isTileSolid(xStart + i, y, lvlData))
+            if (isTileSolid(xStart + i, y, lvlData)) {
                 return false;
+            }
         return true;
 
     }
 
     public static boolean isAllTilesWalkable(int xStart, int xEnd, int y, int[][] lvlData) {
-        for (int i = 0; i < xEnd - xStart; i++) {
-            if (isAllTilesClear(xStart, xEnd, y, lvlData))
-                if (!isTileSolid(xStart + i, y + 1, lvlData)) // checking tiles beneath clear tiles
+        if (isAllTilesClear(xStart, xEnd, y, lvlData)) // If sight is clear need to check if there is a walkable block under
+        {
+            for (int i = 0; i < xEnd - xStart; i++) {
+                if (!isTileSolid(xStart + i, y + 1, lvlData))
                     return false;
+            }
+            return true;
         }
-        return true;
-
+        return false;
     }
+
 
     // Checking whether there is an obstacle in sight between two objects.
     public static boolean isSightClear(int[][] lvlData, Rectangle2D.Float enemyBox, Rectangle2D.Float playerBox, int yTile) {
         int firstXTile = (int) (enemyBox.x / Game.TILES_SIZE);
-
         int secondXTile;
-        if (isSolid(playerBox.x, playerBox.y + playerBox.height + 1, lvlData))
-            secondXTile = (int) (playerBox.x / Game.TILES_SIZE);
-        else
-            secondXTile = (int) ((playerBox.x + playerBox.width) / Game.TILES_SIZE);
 
-        if (firstXTile > secondXTile)
+        if (isSolid(playerBox.x, playerBox.y + playerBox.height + 1, lvlData)) {
+            secondXTile = (int) (playerBox.x / Game.TILES_SIZE);
+        } else {
+            secondXTile = (int) ((playerBox.x + playerBox.width) / Game.TILES_SIZE);
+        }
+
+
+        if (firstXTile > secondXTile) {
             return isAllTilesWalkable(secondXTile, firstXTile, yTile, lvlData);
-        else
+        } else {
             return isAllTilesWalkable(firstXTile, secondXTile, yTile, lvlData);
+        }
     }
 }
 

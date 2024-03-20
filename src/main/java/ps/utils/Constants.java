@@ -6,6 +6,25 @@ public class Constants {
 
     public static final float GRAVITY = 0.04f * Game.SCALE; // How fast entity will fall when inAir.
     public static final int ANI_SPEED = 25;
+    public static final int TEXTURE_MAX_AMOUNT = 62;
+
+    public static class Dialogue {
+        public static final int EXCLAMATION_0 = 0;
+        public static final int EXCLAMATION_1 = 1;
+
+        public static final int DIALOGUE_WIDTH_DEFAULT = 35;
+        public static final int DIALOGUE_HEIGHT_DEFAULT = 17;
+        public static final int DIALOGUE_WIDTH = (int) (DIALOGUE_WIDTH_DEFAULT * Game.SCALE);
+        public static final int DIALOGUE_HEIGHT = (int) (DIALOGUE_HEIGHT_DEFAULT * Game.SCALE);
+
+        public static int GetSpriteAmount(int type) {
+            return switch (type) {
+                case EXCLAMATION_0, EXCLAMATION_1 -> 10;
+                default -> 0;
+            };
+
+        }
+    }
 
     public static class Projectiles {
         public static final int CANNON_BALL_DEFAULT_WIDTH = 15;
@@ -29,11 +48,23 @@ public class Constants {
         public static final int SPIKE = 4;
         public static final int CANNON_LEFT = 5;
         public static final int CANNON_RIGHT = 6;
-        public static final int TREE_ONE = 7;
-        public static final int TREE_TWO = 8;
-        public static final int TREE_THREE = 9;
+        public static final int TREE = 7;
+        public static final int BUSH = 8;
+        public static final int FLAG_GEORGIA = 9;
         public static final int CUP = 10;
         public static final int CANNON_BALL = 11;
+        public static final int BORDER_POST = 12;
+        public static final int SIGN_LARS = 13;
+
+        public static final int SIGN_LARS_WIDTH_DEFAULT = 25; // 23 straight
+        public static final int SIGN_LARS_HEIGHT_DEFAULT = 28; // 27 straight
+        public static final int SIGN_LARS_WIDTH = (int) (SIGN_LARS_WIDTH_DEFAULT * Game.SCALE);
+        public static final int SIGN_LARS_HEIGHT = (int) (SIGN_LARS_HEIGHT_DEFAULT * Game.SCALE);
+
+        public static final int BORDER_POST_WIDTH_DEFAULT = 726;
+        public static final int BORDER_POST_HEIGHT_DEFAULT = 130;
+        public static final int BORDER_POST_WIDTH = (int) (BORDER_POST_WIDTH_DEFAULT * Game.SCALE);
+        public static final int BORDER_POST_HEIGHT = (int) (BORDER_POST_HEIGHT_DEFAULT * Game.SCALE);
 
 
         public static final int RED_POTION_VALUE = 15;
@@ -61,10 +92,10 @@ public class Constants {
 
         public static int getSpriteAmount(int objType) {
             switch (objType) {
-                case TREE_ONE -> {
+                case TREE -> {
                     return 6;
                 }
-                case RED_POTION, BLUE_POTION, CANNON_LEFT, CANNON_RIGHT -> {
+                case RED_POTION, BLUE_POTION, CANNON_LEFT, CANNON_RIGHT, FLAG_GEORGIA -> {
                     return 7;
                 }
                 case BARREL, BOX, CUP -> {
@@ -76,9 +107,9 @@ public class Constants {
 
         public static int GetTreeOffsetX(int treeType) {
             return switch (treeType) {
-                case TREE_ONE, TREE_TWO -> (Game.TILES_SIZE / 2) - (GetTreeWidth(treeType) / 2);
+                case TREE, BUSH, FLAG_GEORGIA -> (Game.TILES_SIZE / 2) - (GetEnvObjWidth(treeType) / 2);
 //                case TREE_TWO -> (int) (Game.TILES_SIZE / 2.5f);
-                case TREE_THREE -> (int) (Game.TILES_SIZE / 1.65f);
+//                case TREE_THREE -> (int) (Game.TILES_SIZE / 1.65f);
                 default -> 0;
             };
 
@@ -87,31 +118,46 @@ public class Constants {
         public static int GetTreeOffsetY(int treeType) {
 
             return switch (treeType) {
-                case TREE_ONE, TREE_TWO -> -GetTreeHeight(treeType) + Game.TILES_SIZE;
-                case TREE_THREE -> -GetTreeHeight(treeType) + (int) (Game.TILES_SIZE / 1.25f);
+                case TREE, BUSH, FLAG_GEORGIA -> -GetEnvObjHeight(treeType) + Game.TILES_SIZE;
+//                case TREE_THREE -> -GetTreeHeight(treeType) + (int) (Game.TILES_SIZE / 1.25f);
                 default -> 0;
             };
 
         }
 
-        public static int GetTreeWidth(int treeType) {
-            return switch (treeType) {
-                case TREE_ONE, TREE_TWO -> (int) (58 * Game.SCALE);
+        public static int GetEnvObjDefaultWidth(int envObjType) {
+            return switch (envObjType) {
+                case TREE, BUSH -> 58;
+                case FLAG_GEORGIA -> 28;
+                default -> 0;
+            };
+        }
+
+        public static int GetEnvObjDefaultHeight(int envObjType) {
+            return switch (envObjType) {
+                case TREE, FLAG_GEORGIA -> 73;
+                case BUSH -> 40;
+                default -> 0;
+            };
+        }
+
+
+        // If we want to flip obj, just add "-" in return.
+        public static int GetEnvObjWidth(int envObjType) {
+            return switch (envObjType) {
+                case TREE, BUSH -> (int) (58 * Game.SCALE);
 //                case TREE_TWO -> (int) (62 * Game.SCALE);
-                case TREE_THREE -> -(int) (62 * Game.SCALE);
+                case FLAG_GEORGIA -> (int) (GetEnvObjDefaultWidth(FLAG_GEORGIA) * Game.SCALE);
                 default -> 0;
             };
         }
 
-        public static int GetTreeHeight(int treeType) {
-            switch (treeType) {
-                case TREE_ONE:
-                    return (int) (73 * Game.SCALE);
-                case TREE_TWO, TREE_THREE:
-                    return (int) (40 * Game.SCALE);
-
-            }
-            return 0;
+        public static int GetEnvObjHeight(int treeType) {
+            return switch (treeType) {
+                case TREE, FLAG_GEORGIA -> (int) (73 * Game.SCALE);
+                case BUSH -> (int) (GetEnvObjDefaultHeight(BUSH) * Game.SCALE);
+                default -> 0;
+            };
         }
     }
 

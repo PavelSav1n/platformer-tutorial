@@ -15,6 +15,8 @@ public abstract class Entity {
     protected Rectangle2D.Float hitbox; // Float is to use float values in hitbox.
     protected int animationTick, animationIndex; // for running through massive of sprites with determined speed
     protected int state;
+    protected int onDeathDoor; // TODO: check this param to repeat death animation
+    protected boolean speaked = false;
     protected float airSpeed; // Speed at what entity is travelling through the air (jumping or falling)
     protected boolean inAir = false;
     protected int maxHealth;

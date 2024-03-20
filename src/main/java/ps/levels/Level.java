@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import static ps.utils.Constants.EnemyConstants.OMON;
 import static ps.utils.Constants.ObjectConstants.*;
+import static ps.utils.Constants.TEXTURE_MAX_AMOUNT;
 //import static ps.utils.HelpMethods.*;
 
 // Level class takes an image and creates all objects lists we need, like OMON, Potions, Containers, Spikes, Cannons.
@@ -24,7 +25,7 @@ public class Level {
     private ArrayList<Spike> spikes = new ArrayList<>();
     private ArrayList<Cannon> cannons = new ArrayList<>();
     private ArrayList<Grass> grass = new ArrayList<>();
-    private ArrayList<BackgroundTree> trees = new ArrayList<>();
+    private ArrayList<AnimatedEnvironment> trees = new ArrayList<>();
 
     // LVLs can change in width, so we need to calculate xLvlOffset
     private int lvlTilesWide; // number of current level tiles in width
@@ -45,7 +46,7 @@ public class Level {
         maxLvlOffsetX = Game.TILES_SIZE * maxTilesOffset;
     }
 
-    // RED -- is for level data. 48 textures for outside sprites + 2 for water.
+    // RED -- is for level data. 58 textures for outside sprites + 2 for water.
     // GREEN -- is for entities (like enemies and player). 2 entities for now.
     // BLUE -- is for objects (creates, potions, cannons, etc.). 10 types for now.
     private void loadLevel() {
@@ -63,7 +64,7 @@ public class Level {
     }
 
     private void loadLevelData(int redValue, int x, int y) {
-        if (redValue >= 50) // Max amount of texture types. Everything over would be 11 (void tile in outside_sprite_atlas).
+        if (redValue >= TEXTURE_MAX_AMOUNT) // Max amount of texture types. Everything over would be 11 (void tile in outside_sprite_atlas).
             lvlData[y][x] = 11;
         else
             lvlData[y][x] = redValue;
@@ -93,8 +94,8 @@ public class Level {
             case SPIKE -> spikes.add(new Spike(x * Game.TILES_SIZE, y * Game.TILES_SIZE, SPIKE));
             case CANNON_LEFT, CANNON_RIGHT ->
                     cannons.add(new Cannon(x * Game.TILES_SIZE, y * Game.TILES_SIZE, blueValue));
-            case TREE_ONE, TREE_TWO, TREE_THREE ->
-                    trees.add(new BackgroundTree(x * Game.TILES_SIZE, y * Game.TILES_SIZE, blueValue));
+            case TREE, BUSH, FLAG_GEORGIA ->
+                    trees.add(new AnimatedEnvironment(x * Game.TILES_SIZE, y * Game.TILES_SIZE, blueValue));
         }
     }
 
@@ -134,7 +135,7 @@ public class Level {
         return cannons;
     }
 
-    public ArrayList<BackgroundTree> getTrees() {
+    public ArrayList<AnimatedEnvironment> getTrees() {
         return trees;
     }
 

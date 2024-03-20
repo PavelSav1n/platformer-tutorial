@@ -2,15 +2,20 @@ package ps.entities;
 
 import ps.gamestates.Playing;
 
+import java.util.Random;
+
+import static ps.utils.Constants.Dialogue.EXCLAMATION_1;
 import static ps.utils.Constants.EnemyConstants.*;
 import static ps.utils.HelpMethods.isFloor;
 
 public class Omon extends Enemy {
 
+    int r = new Random().nextInt(4);
+
     public Omon(float x, float y) { // all other constants are defined already
         super(x, y, OMON_WIDTH, OMON_HEIGHT, OMON);
         initHitbox(21, 27); // 22 and 19 is measured OMON hitbox.
-        initAttackBox(30, 20, 30);  // 30 on the left side + 30 on the right and 22 in the middle
+        initAttackBox(25, 25, 30);  // 30 on the left side + 30 on the right and 22 in the middle
     }
 
     private void updateBehavior(int[][] lvlData, Playing playing) {
@@ -30,6 +35,10 @@ public class Omon extends Enemy {
                 case RUNNING -> {
                     if (canSeePlayer(lvlData, playing.getPlayer())) {
                         turnTowardsPlayer(playing.getPlayer());
+                        if (!speaked && r == 1) { // speaking with 25% possibility
+                            playing.addDialogue((int) hitbox.x, (int) hitbox.y, EXCLAMATION_1);
+                            speaked = true;
+                        }
                         if (isPlayerCloseForAttack(playing.getPlayer()))
                             newState(ATTACK);
                     }

@@ -11,7 +11,7 @@ public class Cannon extends GameObject {
         super(x, y, objType);
         tileY = y / Game.TILES_SIZE;
         initHitbox(40, 26);
-        hitbox.x -= (int) (4 * Game.SCALE); // Placing image of Cannon in the center of hitbox. 40-6=32
+//        hitbox.x -= (int) (4 * Game.SCALE); // Placing image of Cannon in the center of hitbox. 40-6=32. This shit misplaces canon, so it cannot shoot when facing RIGHT
         hitbox.y += (int) (6 * Game.SCALE); // 26+6=32
     }
 

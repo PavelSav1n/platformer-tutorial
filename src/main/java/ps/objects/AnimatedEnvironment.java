@@ -2,11 +2,11 @@ package ps.objects;
 
 import java.util.Random;
 
-public class BackgroundTree {
+public class AnimatedEnvironment {
 
 	private int x, y, type, aniIndex, aniTick;
 
-	public BackgroundTree(int x, int y, int type) {
+	public AnimatedEnvironment(int x, int y, int type) {
 		this.x = x;
 		this.y = y;
 		this.type = type;
