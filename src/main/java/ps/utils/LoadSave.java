@@ -2,17 +2,14 @@ package ps.utils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 
 public class LoadSave {
 
+    // In IDE filenames are case-insensitive, but in JAR packages they are not!
     public static final String PLAYER_ATLAS = "player_sprites.png";
     public static final String LEVEL_ATLAS = "outside_sprites.png";
-    //    public static final String LEVEL_ONE_DATA = "level_one_data.png";
-//    public static final String LEVEL_ONE_DATA = "level_one_data_long.png";
     public static final String MENU_BUTTONS = "menu.button_atlas.png";
     public static final String MENU_BACKGROUND = "menu.menu_background.png"; // bg plate of menu
     public static final String MENU_BACKGROUND_IMG = "menu.background_menu.png"; // bg of menu
@@ -30,7 +27,7 @@ public class LoadSave {
     public static final String POTION_ATLAS = "potions_sprites.png";
     public static final String CONTAINER_ATLAS = "objects_sprites.png";
     public static final String TRAP_ATLAS = "trap_atlas.png";
-    public static final String CANNON_ATLAS = "CANNON_atlas.png";
+    public static final String CANNON_ATLAS = "cannon_atlas.png";
     public static final String CANNON_BALL = "ball.png";
     public static final String CUP_ATLAS = "cup_sprites.png";
     public static final String DEATH_SCREEN = "menu.death_screen.png";
@@ -50,7 +47,6 @@ public class LoadSave {
     public static final String SIGN_LARS = "environment.sign_lars.png";
 
 
-
     public static BufferedImage GetSpriteAtlas(String fileName) {
         BufferedImage img = null;
         // Because of static method we cannot use getClass(), so it is LoadSave.class
@@ -62,7 +58,8 @@ public class LoadSave {
 
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } finally {
+        }
+        finally {
             try {
                 inputStream.close();
             } catch (IOException e) {
@@ -72,38 +69,66 @@ public class LoadSave {
         return img;
     }
 
+    // Legacy way of loading levels.
+    // Logic is to load a folder-file with its contents and then get that list of images and sort them into array of images.
+    // Bad news is that JAR is throwing Exception in thread "main" java.lang.RuntimeException: java.lang.IllegalArgumentException: URI is not hierarchical
+    // It was solved via getResourceAsStream() method.
+
+//    public static BufferedImage[] getAllLevels() {
+//        URL url = LoadSave.class.getResource("/lvls");
+//
+//        File file = null;
+//
+//        try {
+//            file = new File(url.toURI()); // This file contains information about file URLs in it. Like folder in UNIX. So we can do list() and listFiles() with it.
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        File[] files = file.listFiles(); // Receiving the list of paths to images of lvls.
+//        File[] filesSorted = new File[files.length];
+//
+//        for (int i = 0; i < filesSorted.length; i++) { // sorting files paths
+//            for (int j = 0; j < files.length; j++) {
+//                if (files[j].getName().equals(i + 1 + ".png"))
+//                    filesSorted[i] = files[j];
+//            }
+//        }
+//
+//        BufferedImage[] imgs = new BufferedImage[filesSorted.length];
+//
+//        // Filling imgs[] with lvl atlases
+//        for (int i = 0; i < imgs.length; i++) {
+//            try {
+//                imgs[i] = ImageIO.read(filesSorted[i]);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//        return imgs;
+//    }
+
     // Returns imgs array of all lvl sprites in url's folder
     // Each pixel of this lvl files represents an entity of a game (blocks, enemies, objects, etc)
-    // Sorting is occurring in Level class.
+    // We must know the exact amount of level files though.
     public static BufferedImage[] getAllLevels() {
-        URL url = LoadSave.class.getResource("/lvls");
-        File file = null;
+        BufferedImage[] imgs = new BufferedImage[3];
 
-
-        try { // Getting actual resource folder (it's not a "file" in its usual representation in Windows, but in *NIX is, lol)
-            file = new File(url.toURI());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        File[] files = file.listFiles(); // Receiving the list of paths to images of lvls.
-        File[] filesSorted = new File[files.length];
-
-        for (int i = 0; i < filesSorted.length; i++) { // sorting files paths
-            for (int j = 0; j < files.length; j++) {
-                if (files[j].getName().equals(i + 1 + ".png"))
-                    filesSorted[i] = files[j];
-            }
-        }
-
-        BufferedImage[] imgs = new BufferedImage[filesSorted.length];
-
-        // Filling imgs[] with lvl atlases
-        for (int i = 0; i < imgs.length; i++) {
+        for (int i = 0; i < 3; i++) {
+            InputStream is = LoadSave.class.getResourceAsStream("/lvls/" + (i + 1) + ".png");
+            System.out.println("is.toString() = " + is.toString());
             try {
-                imgs[i] = ImageIO.read(filesSorted[i]);
+                imgs[i] = ImageIO.read(is);
+
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
+            }
+            finally {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return imgs;

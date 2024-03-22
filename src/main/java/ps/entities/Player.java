@@ -301,7 +301,7 @@ public class Player extends Entity {
         g.fillRect(healthBarXStart + statusBarX, healthBarYStart + statusBarY, healthWidth, healthBarHeight);
 
         // Power bar
-        g.setColor(Color.yellow);
+        g.setColor(Color.GREEN);
         g.fillRect(powerBarXStart + statusBarX, powerBarYStart + statusBarY, powerWidth, powerBarHeight); // powerWidth not powerBarWidth to make it able to shrink or expand according to current values
 
         // Info:
