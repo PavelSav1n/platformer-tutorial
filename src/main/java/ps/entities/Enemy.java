@@ -5,9 +5,10 @@ import ps.main.Game;
 
 import java.awt.geom.Rectangle2D;
 
+import static ps.utils.Constants.ANI_SPEED;
 import static ps.utils.Constants.Directions.*;
 import static ps.utils.Constants.EnemyConstants.*;
-import static ps.utils.Constants.*;
+import static ps.utils.Constants.GRAVITY;
 import static ps.utils.HelpMethods.*;
 
 public abstract class Enemy extends Entity {
@@ -118,9 +119,9 @@ public abstract class Enemy extends Entity {
 
     public void hurt(int amount) {
         currentHealth -= amount;
-        if (currentHealth <= 0)
+        if (currentHealth <= 0) {
             newState(DEAD);
-        else {
+        } else {
             newState(HIT);
             if (walkDir == LEFT)
                 pushBackDir = RIGHT;
@@ -191,6 +192,7 @@ public abstract class Enemy extends Entity {
         newState(IDLE);
         active = true;
         airSpeed = 0;
+        speaked = false;
 
     }
 

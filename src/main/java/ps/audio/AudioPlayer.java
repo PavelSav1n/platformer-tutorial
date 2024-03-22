@@ -100,10 +100,10 @@ public class AudioPlayer {
     // Plays a particular song depending on level multiplicity (now by 2)
     public void setLevelSong(int lvlIndex) {
         if (lvlIndex % 2 == 0) {
-            System.out.println("LEVEL_1.wav");
+//            System.out.println("LEVEL_1.wav");
             playSong(LEVEL_1);
         } else {
-            System.out.println("LEVEL_2.wav");
+//            System.out.println("LEVEL_2.wav");
             playSong(LEVEL_2);
         }
     }

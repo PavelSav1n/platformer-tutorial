@@ -4,7 +4,8 @@ import ps.gamestates.Playing;
 
 import java.util.Random;
 
-import static ps.utils.Constants.Dialogue.EXCLAMATION_1;
+import static ps.utils.Constants.Dialogue.DIALOGUE_ATTACK;
+import static ps.utils.Constants.Dialogue.DIALOGUE_DEATH;
 import static ps.utils.Constants.EnemyConstants.*;
 import static ps.utils.HelpMethods.isFloor;
 
@@ -14,8 +15,8 @@ public class Omon extends Enemy {
 
     public Omon(float x, float y) { // all other constants are defined already
         super(x, y, OMON_WIDTH, OMON_HEIGHT, OMON);
-        initHitbox(21, 27); // 22 and 19 is measured OMON hitbox.
-        initAttackBox(25, 25, 30);  // 30 on the left side + 30 on the right and 22 in the middle
+        initHitbox(25, 27); // 22 and 19 is measured OMON hitbox.
+        initAttackBox(15, 27, 15);  // 30 on the left side + 30 on the right and 22 in the middle
     }
 
     private void updateBehavior(int[][] lvlData, Playing playing) {
@@ -36,7 +37,7 @@ public class Omon extends Enemy {
                     if (canSeePlayer(lvlData, playing.getPlayer())) {
                         turnTowardsPlayer(playing.getPlayer());
                         if (!speaked && r == 1) { // speaking with 25% possibility
-                            playing.addDialogue((int) hitbox.x, (int) hitbox.y, EXCLAMATION_1);
+                            playing.addDialogue((int) hitbox.x, (int) hitbox.y, DIALOGUE_ATTACK);
                             speaked = true;
                         }
                         if (isPlayerCloseForAttack(playing.getPlayer()))
@@ -53,6 +54,12 @@ public class Omon extends Enemy {
                     if (animationIndex <= getSpriteAmount(enemyType, state) - 2)
                         pushBack(pushBackDir, lvlData, 0.5f);
                     updatePushBackDrawOffset();
+                }
+                case DEAD -> {
+                    if (!speaked && r == 2) { // speaking with 25% possibility
+                        playing.addDialogue((int) hitbox.x, (int) hitbox.y, DIALOGUE_DEATH);
+                        speaked = true; // Avoiding stupid ConcurrentModificationException
+                    }
                 }
             }
         }

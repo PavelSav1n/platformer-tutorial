@@ -96,7 +96,7 @@ public class Player extends Entity {
     }
 
     private void initAttackBox() {
-        attackBox = new Rectangle2D.Float(x, y, (int) (20 * Game.SCALE), (int) (20 * Game.SCALE));
+        attackBox = new Rectangle2D.Float(x, y, (int) (25 * Game.SCALE), (int) (20 * Game.SCALE));
         resetAttackBox();
     }
 
@@ -216,8 +216,8 @@ public class Player extends Entity {
                     g.drawImage(cupImgs[7 - projectile.getAnimationIndex()], (int) (projectile.getHitbox().x - xLvlOffset), (int) projectile.getHitbox().y, CUP_WIDTH, CUP_HEIGHT, null);
                 }
                 // For debugging the hitbox
-                g.setColor(Color.GREEN);
-                g.drawRect((int) (projectile.getHitbox().x - xLvlOffset), (int) projectile.getHitbox().y, CUP_WIDTH, CUP_HEIGHT);
+//                g.setColor(Color.GREEN);
+//                g.drawRect((int) (projectile.getHitbox().x - xLvlOffset), (int) projectile.getHitbox().y, CUP_WIDTH, CUP_HEIGHT);
             }
         }
     }

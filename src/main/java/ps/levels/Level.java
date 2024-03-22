@@ -1,6 +1,7 @@
 package ps.levels;
 
 import ps.entities.Omon;
+import ps.gamestates.Playing;
 import ps.main.Game;
 import ps.objects.*;
 

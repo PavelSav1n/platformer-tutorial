@@ -9,17 +9,22 @@ public class Constants {
     public static final int TEXTURE_MAX_AMOUNT = 62;
 
     public static class Dialogue {
-        public static final int EXCLAMATION_0 = 0;
-        public static final int EXCLAMATION_1 = 1;
+        public static final int DIALOGUE_ATTACK = 0;
+        public static final int DIALOGUE_DEATH = 1;
 
-        public static final int DIALOGUE_WIDTH_DEFAULT = 35;
-        public static final int DIALOGUE_HEIGHT_DEFAULT = 17;
-        public static final int DIALOGUE_WIDTH = (int) (DIALOGUE_WIDTH_DEFAULT * Game.SCALE);
-        public static final int DIALOGUE_HEIGHT = (int) (DIALOGUE_HEIGHT_DEFAULT * Game.SCALE);
+        public static final int DIALOGUE_ATTACK_WIDTH_DEFAULT = 35;
+        public static final int DIALOGUE_ATTACK_HEIGHT_DEFAULT = 17;
+        public static final int DIALOGUE_ATTACK_WIDTH = (int) (DIALOGUE_ATTACK_WIDTH_DEFAULT * Game.SCALE);
+        public static final int DIALOGUE_ATTACK_HEIGHT = (int) (DIALOGUE_ATTACK_HEIGHT_DEFAULT * Game.SCALE);
+
+        public static final int DIALOGUE_DEATH_WIDTH_DEFAULT = 39;
+        public static final int DIALOGUE_DEATH_HEIGHT_DEFAULT = 17;
+        public static final int DIALOGUE_DEATH_WIDTH = (int) (DIALOGUE_DEATH_WIDTH_DEFAULT * Game.SCALE);
+        public static final int DIALOGUE_DEATH_HEIGHT = (int) (DIALOGUE_DEATH_HEIGHT_DEFAULT * Game.SCALE);
 
         public static int GetSpriteAmount(int type) {
             return switch (type) {
-                case EXCLAMATION_0, EXCLAMATION_1 -> 10;
+                case DIALOGUE_ATTACK, DIALOGUE_DEATH -> 10;
                 default -> 0;
             };
 

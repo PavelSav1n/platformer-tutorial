@@ -24,13 +24,13 @@ public class GameWindow {
         jframe.addWindowFocusListener(new WindowFocusListener() { // In case we loose focus on our game window
             @Override
             public void windowGainedFocus(WindowEvent e) {
-                System.out.println("FocusBack!");
+                //System.out.println("FocusBack!");
             }
 
             @Override
             public void windowLostFocus(WindowEvent e) {
                 gamePanel.getGame().windowFocusLost(); // Make all boolean false (stop running, etc.)
-                System.out.println("LostFocus!");
+                //System.out.println("LostFocus!");
             }
         });
     }

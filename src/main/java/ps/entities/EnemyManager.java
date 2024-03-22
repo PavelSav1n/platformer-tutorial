@@ -53,23 +53,25 @@ public class EnemyManager {
     private void drawOmon(Graphics g, int xLvlOffset) {
         for (Omon omon : omons) {
             if (omon.isActive()) {
-                if (omon.state == DEAD) { // This check is needed because I don't need death animation to flipX
-                    g.drawImage(
-                            omonArr[omon.getState()][omon.getAniIndex()],
-                            (int) omon.getHitbox().x - xLvlOffset - OMON_DRAWOFFSET_X,
-                            (int) omon.getHitbox().y - OMON_DRAWOFFSET_Y + (int) omon.getPushDrawOffset(),
-                            OMON_WIDTH, OMON_HEIGHT, null);
+//                if (omon.state == DEAD) { // This check is needed because I don't need death animation to flipX
+//                    g.drawImage(
+//                            omonArr[omon.getState()][omon.getAniIndex()],
+//                            (int) omon.getHitbox().x - xLvlOffset - OMON_DRAWOFFSET_X,
+//                            (int) omon.getHitbox().y - OMON_DRAWOFFSET_Y + (int) omon.getPushDrawOffset(),
+//                            OMON_WIDTH, OMON_HEIGHT, null);
+//
+//                    omon.drawHitbox(g, xLvlOffset);
+//                    omon.drawAttackBox(g, xLvlOffset);
+//                } else
+                g.drawImage( // This is universal approach
+                        omonArr[omon.getState()][omon.getAniIndex()],
+                        (int) omon.getHitbox().x - xLvlOffset - OMON_DRAWOFFSET_X + omon.flipX(),
+                        (int) omon.getHitbox().y - OMON_DRAWOFFSET_Y + (int) omon.getPushDrawOffset(),
+                        OMON_WIDTH * omon.flipW(), OMON_HEIGHT, null);
 
-                    omon.drawHitbox(g, xLvlOffset);
-                    omon.drawAttackBox(g, xLvlOffset);
-                } else
-                    g.drawImage( // This is universal approach
-                            omonArr[omon.getState()][omon.getAniIndex()],
-                            (int) omon.getHitbox().x - xLvlOffset - OMON_DRAWOFFSET_X + omon.flipX(),
-                            (int) omon.getHitbox().y - OMON_DRAWOFFSET_Y + (int) omon.getPushDrawOffset(),
-                            OMON_WIDTH * omon.flipW(), OMON_HEIGHT, null);
-                omon.drawHitbox(g, xLvlOffset);
-                omon.drawAttackBox(g, xLvlOffset);
+                // Debug: draw hit & attack boxes
+//                omon.drawHitbox(g, xLvlOffset);
+//                omon.drawAttackBox(g, xLvlOffset);
             }
         }
     }
@@ -77,8 +79,9 @@ public class EnemyManager {
     // Player damage to Enemies with a stick:
     public int checkEnemyHit(Rectangle2D.Float attackBox) {
         for (Omon omon : omons) {
-            if (omon.getCurrentHealth() > 0) // Without this check dead enemy stays in death animation while we're hitting him.
-                if (omon.isActive()) {
+//            if (omon.getCurrentHealth() > 0) // Without this check dead enemy stays in death animation while we're hitting him.
+            if (omon.isActive())
+                if (omon.getState() != DEAD && omon.getState() != HIT) { // Maybe this will work.
                     if (attackBox.intersects(omon.getHitbox())) {
                         omon.hurt(10);
                         return 1;

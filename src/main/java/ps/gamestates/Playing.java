@@ -47,7 +47,7 @@ public class Playing extends State implements StateMethods {
     private boolean levelCompleted;
     private boolean playerDying = false;
 
-    private BufferedImage[] questionImgs, exclamationImgs;
+    private BufferedImage[] dialogDeathImgs, dialogueAttackImgs;
     private ArrayList<DialogueEffect> dialogEffects = new ArrayList<>();
 
 
@@ -72,31 +72,32 @@ public class Playing extends State implements StateMethods {
         loadDialogueImgs();
 
         // Load dialogue array with premade objects, that gets activated when needed.
-        // This is a simple
-        // way of avoiding ConcurrentModificationException error. (Adding to a list that
-        // is being looped through.
+        // This is a simple way of avoiding ConcurrentModificationException error. (Adding to a list that is being looped through.)
+
 
         for (int i = 0; i < 20; i++)
-            dialogEffects.add(new DialogueEffect(0, 0, EXCLAMATION_1));
+            dialogEffects.add(new DialogueEffect(0, 0, DIALOGUE_DEATH));
         for (int i = 0; i < 20; i++)
-            dialogEffects.add(new DialogueEffect(0, 0, EXCLAMATION_0));
+            dialogEffects.add(new DialogueEffect(0, 0, DIALOGUE_ATTACK));
 
         for (DialogueEffect de : dialogEffects)
             de.deactive();
     }
 
     private void loadDialogueImgs() {
-        BufferedImage qtemp = LoadSave.GetSpriteAtlas(LoadSave.EXCLAMATION_0_ATLAS);
-        questionImgs = new BufferedImage[5];
-        for (int i = 0; i < questionImgs.length; i++) {
-            questionImgs[i] = qtemp.getSubimage(i * 14, 0, 14, 12);
+        dialogDeathImgs = new BufferedImage[GetSpriteAmount(DIALOGUE_DEATH)];
+        for (int i = 0; i < dialogDeathImgs.length; i++) {
+            dialogDeathImgs[i] = LoadSave.GetSpriteAtlas(LoadSave.DIALOGUE_DEATH_ATLAS).
+                    getSubimage(i * DIALOGUE_DEATH_WIDTH_DEFAULT, 0, DIALOGUE_DEATH_WIDTH_DEFAULT, DIALOGUE_DEATH_HEIGHT_DEFAULT);
         }
 
-        BufferedImage etemp = LoadSave.GetSpriteAtlas(LoadSave.EXCLAMATION_1_ATLAS);
-        exclamationImgs = new BufferedImage[GetSpriteAmount(EXCLAMATION_1)];
-        for (int i = 0; i < exclamationImgs.length; i++) {
-            exclamationImgs[i] = etemp.getSubimage(i * DIALOGUE_WIDTH_DEFAULT, 0, DIALOGUE_WIDTH_DEFAULT, DIALOGUE_HEIGHT_DEFAULT);
+        dialogueAttackImgs = new BufferedImage[GetSpriteAmount(DIALOGUE_ATTACK)];
+        for (int i = 0; i < dialogueAttackImgs.length; i++) {
+            dialogueAttackImgs[i] = LoadSave.GetSpriteAtlas(LoadSave.DIALOGUE_ATTACK_ATLAS).
+                    getSubimage(i * DIALOGUE_ATTACK_WIDTH_DEFAULT, 0, DIALOGUE_ATTACK_WIDTH_DEFAULT, DIALOGUE_ATTACK_HEIGHT_DEFAULT);
         }
+
+
     }
 
     public void setMaxLvlOffsetX(int maxLvlOffsetX) {
@@ -106,7 +107,6 @@ public class Playing extends State implements StateMethods {
     public void loadNextLevel() {
         levelManager.loadNextLevel();
         player.setSpawn(levelManager.getCurrentLevel().getPlayerSpawn());
-        resetAll();
         resetAll(); // Resetting atatckBox and stuff after setting a Player.
     }
 
@@ -177,10 +177,10 @@ public class Playing extends State implements StateMethods {
     private void drawDialogue(Graphics g, int xLvlOffset) {
         for (DialogueEffect de : dialogEffects)
             if (de.isActive()) {
-                if (de.getType() == EXCLAMATION_0)
-                    g.drawImage(questionImgs[de.getAniIndex()], de.getX() - xLvlOffset, de.getY(), DIALOGUE_WIDTH, DIALOGUE_HEIGHT, null);
+                if (de.getType() == DIALOGUE_DEATH)
+                    g.drawImage(dialogDeathImgs[de.getAniIndex()], de.getX() - xLvlOffset, de.getY(), DIALOGUE_DEATH_WIDTH, DIALOGUE_DEATH_HEIGHT, null);
                 else
-                    g.drawImage(exclamationImgs[de.getAniIndex()], de.getX() - xLvlOffset, de.getY(), DIALOGUE_WIDTH, DIALOGUE_HEIGHT, null);
+                    g.drawImage(dialogueAttackImgs[de.getAniIndex()], de.getX() - xLvlOffset, de.getY(), DIALOGUE_ATTACK_WIDTH, DIALOGUE_ATTACK_HEIGHT, null);
             }
     }
 
