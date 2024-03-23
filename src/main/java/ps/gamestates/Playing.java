@@ -47,7 +47,7 @@ public class Playing extends State implements StateMethods {
     private boolean levelCompleted;
     private boolean playerDying = false;
 
-    private BufferedImage[] dialogDeathImgs, dialogueAttackImgs;
+    private BufferedImage[] dialogDeathImgs, dialogueAttackImgs, dialogueStartImgs;
     private ArrayList<DialogueEffect> dialogEffects = new ArrayList<>();
 
 
@@ -95,6 +95,20 @@ public class Playing extends State implements StateMethods {
         for (int i = 0; i < dialogueAttackImgs.length; i++) {
             dialogueAttackImgs[i] = LoadSave.GetSpriteAtlas(LoadSave.DIALOGUE_ATTACK_ATLAS).
                     getSubimage(i * DIALOGUE_ATTACK_WIDTH_DEFAULT, 0, DIALOGUE_ATTACK_WIDTH_DEFAULT, DIALOGUE_ATTACK_HEIGHT_DEFAULT);
+        }
+
+        // Main message always starts at 3rd subimage. So making the length of a dialogue message resizable without changing initial image atlas.
+        dialogueStartImgs = new BufferedImage[GetSpriteAmount(DIALOGUE_START)];
+        for (int i = 0; i < dialogueStartImgs.length; i++) {
+            if (i >= 2 && i <= dialogueStartImgs.length - 2) {
+                dialogueStartImgs[i] = LoadSave.GetSpriteAtlas(LoadSave.DIALOGUE_START_ATLAS).
+                        getSubimage(2 * DIALOGUE_START_WIDTH_DEFAULT, 0, DIALOGUE_START_WIDTH_DEFAULT, DIALOGUE_START_HEIGHT_DEFAULT);
+            } else if (i > dialogueStartImgs.length - 3)
+                dialogueStartImgs[i] = LoadSave.GetSpriteAtlas(LoadSave.DIALOGUE_START_ATLAS).
+                        getSubimage(dialogueStartImgs.length - i + 2 * DIALOGUE_START_WIDTH_DEFAULT, 0, DIALOGUE_START_WIDTH_DEFAULT, DIALOGUE_START_HEIGHT_DEFAULT);
+            else
+                dialogueStartImgs[i] = LoadSave.GetSpriteAtlas(LoadSave.DIALOGUE_START_ATLAS).
+                        getSubimage(i * DIALOGUE_START_WIDTH_DEFAULT, 0, DIALOGUE_START_WIDTH_DEFAULT, DIALOGUE_START_HEIGHT_DEFAULT);
         }
 
 
@@ -179,8 +193,11 @@ public class Playing extends State implements StateMethods {
             if (de.isActive()) {
                 if (de.getType() == DIALOGUE_DEATH)
                     g.drawImage(dialogDeathImgs[de.getAniIndex()], de.getX() - xLvlOffset, de.getY(), DIALOGUE_DEATH_WIDTH, DIALOGUE_DEATH_HEIGHT, null);
-                else
+                else if (de.getType() == DIALOGUE_ATTACK)
                     g.drawImage(dialogueAttackImgs[de.getAniIndex()], de.getX() - xLvlOffset, de.getY(), DIALOGUE_ATTACK_WIDTH, DIALOGUE_ATTACK_HEIGHT, null);
+                else if (de.getType() == DIALOGUE_START)
+                    g.drawImage(dialogueStartImgs[de.getAniIndex()], de.getX() - xLvlOffset, de.getY(), DIALOGUE_START_WIDTH, DIALOGUE_START_HEIGHT, null);
+
             }
     }
 

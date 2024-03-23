@@ -11,6 +11,7 @@ public class Constants {
     public static class Dialogue {
         public static final int DIALOGUE_ATTACK = 0;
         public static final int DIALOGUE_DEATH = 1;
+        public static final int DIALOGUE_START = 2;
 
         public static final int DIALOGUE_ATTACK_WIDTH_DEFAULT = 35;
         public static final int DIALOGUE_ATTACK_HEIGHT_DEFAULT = 17;
@@ -22,9 +23,15 @@ public class Constants {
         public static final int DIALOGUE_DEATH_WIDTH = (int) (DIALOGUE_DEATH_WIDTH_DEFAULT * Game.SCALE);
         public static final int DIALOGUE_DEATH_HEIGHT = (int) (DIALOGUE_DEATH_HEIGHT_DEFAULT * Game.SCALE);
 
+        public static final int DIALOGUE_START_WIDTH_DEFAULT = 73;
+        public static final int DIALOGUE_START_HEIGHT_DEFAULT = 40;
+        public static final int DIALOGUE_START_WIDTH = (int) (DIALOGUE_START_WIDTH_DEFAULT * Game.SCALE);
+        public static final int DIALOGUE_START_HEIGHT = (int) (DIALOGUE_START_HEIGHT_DEFAULT * Game.SCALE);
+
         public static int GetSpriteAmount(int type) {
             return switch (type) {
                 case DIALOGUE_ATTACK, DIALOGUE_DEATH -> 10;
+                case DIALOGUE_START -> 20;
                 default -> 0;
             };
 

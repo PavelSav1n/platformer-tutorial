@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import static ps.utils.Constants.ANI_SPEED;
+import static ps.utils.Constants.Dialogue.DIALOGUE_START;
 import static ps.utils.Constants.Directions.*;
 import static ps.utils.Constants.GRAVITY;
 import static ps.utils.Constants.ObjectConstants.CUP;
@@ -72,7 +73,8 @@ public class Player extends Entity {
 
     // RangedAttack
     private ArrayList<Projectile> cups = new ArrayList<>();
-    private BufferedImage[] cupImgs;
+    private BufferedImage[] cupImgs = new BufferedImage[ps.utils.Constants.ObjectConstants.getSpriteAmount(CUP)];
+    BufferedImage cupSprite = LoadSave.GetSpriteAtlas(LoadSave.CUP_ATLAS);
 
 
     public Player(float x, float y, int width, int height, Playing playing) {
@@ -201,8 +203,6 @@ public class Player extends Entity {
     }
 
     private void drawCups(Graphics g, int xLvlOffset) {
-        BufferedImage cupSprite = LoadSave.GetSpriteAtlas(LoadSave.CUP_ATLAS);
-        cupImgs = new BufferedImage[ps.utils.Constants.ObjectConstants.getSpriteAmount(CUP)];
 
         for (int i = 0; i < cupImgs.length; i++) {
             cupImgs[i] = cupSprite.getSubimage(i * CUP_DEFAULT_WIDTH, 0, CUP_DEFAULT_WIDTH, CUP_DEFAULT_HEIGHT);
@@ -282,6 +282,12 @@ public class Player extends Entity {
                 (int) (hitbox.x - xDrawOffset) - lvlOffset + flipX,
                 (int) (hitbox.y - yDrawOffset) + (int) (pushDrawOffset),
                 width * flipW, height, null);
+
+        //Speaking at the start:
+        if (speaked == false) {
+            playing.addDialogue((int) hitbox.x, (int) hitbox.y, DIALOGUE_START);
+            speaked = true;
+        }
 
         // For debug: drawing attack & hitbox:
 //        drawHitbox(graphics, lvlOffset);

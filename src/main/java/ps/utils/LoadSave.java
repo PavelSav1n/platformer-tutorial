@@ -42,6 +42,7 @@ public class LoadSave {
 
     public static final String DIALOGUE_ATTACK_ATLAS = "dialogue.attack.png";
     public static final String DIALOGUE_DEATH_ATLAS = "dialogue.death.png";
+    public static final String DIALOGUE_START_ATLAS = "dialogue.start.png";
 
     public static final String BORDER_POST = "environment.border_post.png";
     public static final String SIGN_LARS = "environment.sign_lars.png";
@@ -51,6 +52,7 @@ public class LoadSave {
         BufferedImage img = null;
         // Because of static method we cannot use getClass(), so it is LoadSave.class
         InputStream inputStream = LoadSave.class.getResourceAsStream("/" + fileName);
+        System.out.println(fileName + " | " + inputStream);
 
         try {
             img = ImageIO.read(inputStream);
@@ -58,8 +60,7 @@ public class LoadSave {
 
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-        finally {
+        } finally {
             try {
                 inputStream.close();
             } catch (IOException e) {
@@ -122,8 +123,7 @@ public class LoadSave {
 
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 try {
                     is.close();
                 } catch (IOException e) {
