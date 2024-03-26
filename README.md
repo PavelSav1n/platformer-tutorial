@@ -1,5 +1,7 @@
 # Escape From Lars
 
+![EscFromLars]([https://myoctocat.com/assets/images/base-octocat.svg](https://media.licdn.com/dms/image/D4D12AQHYHQEHtPNuOw/article-cover_image-shrink_720_1280/0/1711441139516?e=1717027200&v=beta&t=H9kknu0-UFqidesBQqXNPA2n1G5iuDzZSFE301Y0MRA))
+
 Pet project 2D platformer game based on kaaringaming.com tutorial.
 
 - Redesigned the menu and UI.
