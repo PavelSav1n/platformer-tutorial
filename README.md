@@ -1,6 +1,6 @@
 # Escape From Lars
 
-2D platformer game based on kaaringaming.com tutorial.
+Pet project 2D platformer game based on kaaringaming.com tutorial.
 
 - Redesigned the menu and UI.
 - Drew a new player character, enemies and animated them.
